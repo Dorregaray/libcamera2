@@ -62,8 +62,6 @@ extern "C" {
 #include <sys/time.h>
 #include <stdlib.h>
 
-#include <media/msm_camera.h>
-
 #if 0
 #include <camera.h>
 #include <camframe.h>
@@ -195,7 +193,8 @@ board_property boardProperties[] = {
         {TARGET_MSM7625, 0x00000fff},
         {TARGET_MSM7627, 0x000006ff},
         {TARGET_MSM7630, 0x00000fff},
-        {TARGET_QSD8250, 0x00000fff}
+        {TARGET_QSD8250, 0x00000fff},
+        {TARGET_MSM8660, 0x00001fff}
 };
 
 //static const camera_size_type* picture_sizes;
@@ -236,7 +235,8 @@ static const target_map targetList [] = {
     { "msm7625", TARGET_MSM7625 },
     { "msm7627", TARGET_MSM7627 },
     { "qsd8250", TARGET_QSD8250 },
-    { "msm7630", TARGET_MSM7630 }
+    { "msm7630", TARGET_MSM7630 },
+    { "msm8660", TARGET_MSM8660 }
 };
 static targetType mCurrentTarget = TARGET_MAX;
 
@@ -1141,7 +1141,7 @@ bool QualcommCameraHardware::startCamera()
 
     *(void **)&LINK_jpeg_encoder_join =
         ::dlsym(libmmcamera, "jpeg_encoder_join");
-
+/*
     *(void **)&LINK_mmcamera_camframe_callback =
         ::dlsym(libmmcamera, "mmcamera_camframe_callback");
 
@@ -1161,15 +1161,15 @@ bool QualcommCameraHardware::startCamera()
         ::dlsym(libmmcamera, "camframe_timeout_callback");
 
     *LINK_camframe_timeout_callback = receive_camframetimeout_callback;
-
+*/
     // 720 p new recording functions
     *(void **)&LINK_cam_frame_flush_free_video = ::dlsym(libmmcamera, "cam_frame_flush_free_video");
 
     *(void **)&LINK_camframe_free_video = ::dlsym(libmmcamera, "cam_frame_add_free_video");
-
+/*
     *(void **)&LINK_camframe_video_callback = ::dlsym(libmmcamera, "mmcamera_camframe_videocallback");
         *LINK_camframe_video_callback = receive_camframe_video_callback;
-
+*/
     *(void **)&LINK_mmcamera_shutter_callback =
         ::dlsym(libmmcamera, "mmcamera_shutter_callback");
 
@@ -1829,6 +1829,11 @@ bool QualcommCameraHardware::native_set_parm(
 
     LOGV("%s: fd %d, type %d, length %d", __FUNCTION__,
          mCameraControlFd, type, length);
+
+    /* FIXME: ugly temporary workaround for segfault */
+    if (type == 1)
+      LOGV("skipping this parameter");
+    else
     if (ioctl(mCameraControlFd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd) < 0 ||
                 ctrlCmd.status != CAM_CTRL_SUCCESS) {
         LOGE("%s: error (%s): fd %d, type %d, length %d, status %d",
@@ -2969,9 +2974,9 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setAntibanding(params)))  final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-    if ((rc = setAutoExposure(params))) final_rc = rc;
-    if(final_rc)
-		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+//    if ((rc = setAutoExposure(params))) final_rc = rc;
+//    if(final_rc)
+//		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
     if ((rc = setWhiteBalance(params))) final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
@@ -2987,9 +2992,9 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setRotation(params)))     final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-    if ((rc = setZoom(params)))         final_rc = rc;
-    if(final_rc)
-		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+//    if ((rc = setZoom(params)))         final_rc = rc;
+//    if(final_rc)
+//		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
     if ((rc = setFocusMode(params)))    final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
@@ -2999,9 +3004,9 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setBrightness(params)))   final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-    if ((rc = setLensshadeValue(params)))  final_rc = rc;
-    if(final_rc)
-		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+//    if ((rc = setLensshadeValue(params)))  final_rc = rc;
+//    if(final_rc)
+//		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
     if ((rc = setISOValue(params)))  final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
@@ -3014,9 +3019,9 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setContrast(params)))     final_rc = rc;
     if(final_rc)
 		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-    if ((rc = setSaturation(params)))   final_rc = rc;
-    if(final_rc)
-		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+//    if ((rc = setSaturation(params)))   final_rc = rc;
+//    if(final_rc)
+//		LOGE("%s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
     LOGV("setParameters: X");
     return final_rc;
@@ -4652,7 +4657,7 @@ void QualcommCameraHardware::receive_camframetimeout(void) {
     Mutex::Autolock l(&mCamframeTimeoutLock);
     LOGE(" Camframe timed out. Not receiving any frames from camera driver ");
     camframe_timeout_flag = TRUE;
-    mNotifyCallback(CAMERA_MSG_ERROR, CAMERA_ERROR_UKNOWN, 0,
+    mNotifyCallback(CAMERA_MSG_ERROR, CAMERA_ERROR_UNKNOWN, 0,
                     mCallbackCookie);
     LOGV("receive_camframetimeout: X");
 }

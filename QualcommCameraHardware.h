@@ -18,15 +18,16 @@
 #ifndef ANDROID_HARDWARE_QUALCOMM_CAMERA_HARDWARE_H
 #define ANDROID_HARDWARE_QUALCOMM_CAMERA_HARDWARE_H
 
-#include <camera/CameraHardwareInterface.h>
+#include "CameraHardwareInterface.h"
 #include <binder/MemoryBase.h>
 #include <binder/MemoryHeapBase.h>
+#include <utils/threads.h>
 #include <stdint.h>
-#include <ui/Overlay.h>
+#include <ui/OverlayHtc.h>
 
 extern "C" {
 #include <linux/android_pmem.h>
-#include <media/msm_camera.h>
+#include "msm_camera.h"
 }
 // Extra propriatary stuff (mostly from CM)
 #define MSM_CAMERA_CONTROL "/dev/msm_camera/control0"
@@ -98,6 +99,7 @@ typedef enum {
     CAMERA_MAX_ANTIBANDING,
 } camera_antibanding_type;
 
+//From now on ... Total guesses ! no RE available afaik.
 typedef enum {
 	AF_MODE_NORMAL,
 	AF_MODE_MACRO,
@@ -283,6 +285,7 @@ typedef enum {
     TARGET_MSM7627,
     TARGET_QSD8250,
     TARGET_MSM7630,
+    TARGET_MSM8660,
     TARGET_MAX
 }targetType;
 

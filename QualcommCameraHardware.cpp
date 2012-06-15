@@ -1914,8 +1914,19 @@ bool QualcommCameraHardware::native_set_parm(
          mCameraControlFd, type, length);
 
     /* FIXME: ugly temporary workaround for segfault */
-    if (type == 1)
+    if (type == 1) {
+      cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
+      LOGV("cam_ctrl_dimension_t dump:");
+      LOGV("video_width: %d, video_height: %d, picture_width: %d, picture_height: %d, "
+         "display_width: %d, display_height: %d, orig_picture_dx: %d, orig_picture_dy: %d, "
+         "ui_thumbnail_width: %d, ui_thumbnail_height:%d, thumbnail_width: %d, thumbnail_height: %d, "
+         "raw_picture_height: %d, raw_picture_width: %d, filler7: %d, filler8: %d"
+         t->video_width, t->video_height, t->picture_width, t->picture_height,
+         t->display_width, t->display_height, t->orig_picture_dx, t->orig_picture_dy,
+         t->ui_thumbnail_width, t->ui_thumbnail_height, t->thumbnail_width, t->thumbnail_height,
+         t->raw_picture_height, t->raw_picture_width, t->filler7, t->filler8);
       LOGV("skipping this parameter");
+    }
     else
     if (ioctl(mCameraControlFd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd) < 0 ||
                 ctrlCmd.status != CAM_CTRL_SUCCESS) {

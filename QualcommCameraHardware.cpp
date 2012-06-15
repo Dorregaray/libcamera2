@@ -43,6 +43,7 @@
 
 #define LIKELY(exp)   __builtin_expect(!!(exp), 1)
 #define UNLIKELY(exp) __builtin_expect(!!(exp), 0)
+#define CAMERA_HAL_UNUSED(expr) do { (void)(expr); } while (0)
 
 extern "C" {
 #include <fcntl.h>
@@ -90,7 +91,7 @@ bool  (*LINK_jpeg_encoder_encode)(const cam_ctrl_dimension_t *dimen,
                                   const uint8_t *thumbnailbuf, int thumbnailfd,
                                   const uint8_t *snapshotbuf, int snapshotfd,
                                   common_crop_t *scaling_parms, exif_tags_info_t *exif_data,
-                                  int exif_table_numEntries, int jpegPadding);
+                                  int exif_table_numEntries, int jpegPadding/*, const int32_t cbcroffset*/);
 void (*LINK_camframe_terminate)(void);
 //for 720p
 // Function to add a video buffer to free Q
@@ -115,12 +116,7 @@ int8_t (*LINK_zoom_crop_upscale)(uint32_t width, uint32_t height,
     uint32_t cropped_width, uint32_t cropped_height, uint8_t *img_buf);
 
 // callbacks
-void  (**LINK_mmcamera_camframe_callback)(struct msm_frame *frame);
-void  (**LINK_mmcamera_jpegfragment_callback)(uint8_t *buff_ptr,
-                                              uint32_t buff_size);
-void  (**LINK_mmcamera_jpeg_callback)(jpeg_event_t status);
 void  (**LINK_mmcamera_shutter_callback)(common_crop_t *crop);
-void  (**LINK_camframe_timeout_callback)(void);
 #else
 #define LINK_cam_conf cam_conf
 #define LINK_cam_frame cam_frame
@@ -255,6 +251,7 @@ typedef struct {
 static thumbnail_size_type thumbnail_sizes[] = {
     { 7281, 512, 288 }, //1.777778
     { 6826, 480, 288 }, //1.666667
+    { 6808, 256, 154 }, //1.662337
     { 6144, 432, 288 }, //1.5
     { 5461, 512, 384 }, //1.333333
     { 5006, 352, 288 }, //1.222222
@@ -1207,27 +1204,7 @@ bool QualcommCameraHardware::startCamera()
 
     *(void **)&LINK_jpeg_encoder_join =
         ::dlsym(libmmcamera, "jpeg_encoder_join");
-/*
-    *(void **)&LINK_mmcamera_camframe_callback =
-        ::dlsym(libmmcamera, "mmcamera_camframe_callback");
 
-    *LINK_mmcamera_camframe_callback = receive_camframe_callback;
-
-    *(void **)&LINK_mmcamera_jpegfragment_callback =
-        ::dlsym(libmmcamera, "mmcamera_jpegfragment_callback");
-
-    *LINK_mmcamera_jpegfragment_callback = receive_jpeg_fragment_callback;
-
-    *(void **)&LINK_mmcamera_jpeg_callback =
-        ::dlsym(libmmcamera, "mmcamera_jpeg_callback");
-
-    *LINK_mmcamera_jpeg_callback = receive_jpeg_callback;
-
-    *(void **)&LINK_camframe_timeout_callback =
-        ::dlsym(libmmcamera, "camframe_timeout_callback");
-
-    *LINK_camframe_timeout_callback = receive_camframetimeout_callback;
-*/
     // 720 p new recording functions
     *(void **)&LINK_cam_frame_flush_free_video = ::dlsym(libmmcamera, "cam_frame_flush_free_video");
 
@@ -5154,9 +5131,9 @@ bool QualcommCameraHardware::isValidDimension(int width, int height) {
     return retVal;
 }
 status_t QualcommCameraHardware::getBufferInfo(sp<IMemory>& Frame, size_t *alignedSize) {
-    status_t ret;
+    status_t ret = UNKNOWN_ERROR;
     LOGV(" getBufferInfo : E ");
-    if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) )
+    if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660) )
     {
 	if( mRecordHeap != NULL){
 		LOGV(" Setting valid buffer information ");
@@ -5174,9 +5151,51 @@ status_t QualcommCameraHardware::getBufferInfo(sp<IMemory>& Frame, size_t *align
 		Frame = NULL;
 		ret = UNKNOWN_ERROR;
 	}
+    } else {
+	if(mPreviewHeap != NULL) {
+		LOGV(" Setting valid buffer information ");
+		Frame = mPreviewHeap->mBuffers[0];
+		if( alignedSize != NULL) {
+			*alignedSize = mPreviewHeap->mAlignedBufferSize;
+			LOGV(" HAL : alignedSize = %d ", *alignedSize);
+			ret = NO_ERROR;
+		} else {
+			LOGE(" HAL : alignedSize is NULL. Cannot update alignedSize ");
+			ret = UNKNOWN_ERROR;
+		}
+	} else {
+		LOGE(" PreviewHeap is null. Buffer information wont be updated ");
+		Frame = NULL;
+		ret = UNKNOWN_ERROR;
+	}
     }
     LOGV(" getBufferInfo : X ");
     return ret;
+}
+
+void QualcommCameraHardware::encodeData()
+{
+    //FIXME: implement me
+}
+
+/* Gingerbread API functions */
+extern "C" int HAL_getNumberOfCameras()
+{
+    return 1;
+}
+
+extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
+{
+    CAMERA_HAL_UNUSED(cameraId);
+    cameraInfo->facing      = CAMERA_FACING_FRONT;
+    cameraInfo->orientation = 90;
+    cameraInfo->mode        = 0;
+}
+
+extern "C" sp<CameraHardwareInterface> HAL_openCameraHardware(int cameraId)
+{
+    CAMERA_HAL_UNUSED(cameraId);
+    return openCameraHardware();
 }
 
 }; // namespace android

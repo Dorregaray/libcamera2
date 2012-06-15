@@ -80,8 +80,6 @@ extern "C" {
 #if DLOPEN_LIBMMCAMERA
 #include <dlfcn.h>
 
-#define LOGV LOGE
-
 void* (*LINK_cam_conf)(void *data);
 void* (*LINK_cam_frame)(void *data);
 bool  (*LINK_jpeg_encoder_init)();
@@ -283,7 +281,7 @@ static inline unsigned clp2(unsigned x)
 }
 
 static int exif_table_numEntries = 0;
-#define MAX_EXIF_TABLE_ENTRIES 7
+#define MAX_EXIF_TABLE_ENTRIES 8
 exif_tags_info_t exif_data[MAX_EXIF_TABLE_ENTRIES];
 static zoom_crop_info zoomCropInfo;
 static void *mLastQueuedFrame = NULL;
@@ -632,6 +630,17 @@ struct SensorType {
     int max_supported_snapshot_height;
     int bitMask;
 };
+
+
+/*
+ * Values based on aec.c
+ */
+
+#define EXPOSURE_COMPENSATION_MAXIMUM_NUMERATOR 12
+#define EXPOSURE_COMPENSATION_MINIMUM_NUMERATOR -12
+#define EXPOSURE_COMPENSATION_DEFAULT_NUMERATOR 0
+#define EXPOSURE_COMPENSATION_DENOMINATOR 6
+#define EXPOSURE_COMPENSATION_STEP ((float (1))/EXPOSURE_COMPENSATION_DENOMINATOR)
 
 static SensorType sensorTypes[] = {
         { "12mp", 4096, 3120, false, 4096, 3120,0x00000fff },
@@ -1079,6 +1088,19 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_MAX_SATURATION,
             CAMERA_MAX_SATURATION);
 
+    mParameters.set(
+            CameraParameters::KEY_MAX_EXPOSURE_COMPENSATION,
+            EXPOSURE_COMPENSATION_MAXIMUM_NUMERATOR);
+    mParameters.set(
+            CameraParameters::KEY_MIN_EXPOSURE_COMPENSATION,
+            EXPOSURE_COMPENSATION_MINIMUM_NUMERATOR);
+    mParameters.set(
+            CameraParameters::KEY_EXPOSURE_COMPENSATION,
+            EXPOSURE_COMPENSATION_DEFAULT_NUMERATOR);
+    mParameters.setFloat(
+            CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP,
+            EXPOSURE_COMPENSATION_STEP);
+
     mParameters.set("luma-adaptation", "3");
     mParameters.set("zoom-supported", "true");
     mParameters.set("max-zoom", MAX_ZOOM_LEVEL);
@@ -1152,7 +1174,6 @@ bool QualcommCameraHardware::startCamera()
 #if DLOPEN_LIBMMCAMERA
     libmmcamera = ::dlopen("liboemcamera.so", RTLD_NOW);
 
-    LOGE("opening mm camera");
     LOGV("loading liboemcamera at %p", libmmcamera);
     if (!libmmcamera) {
         LOGE("FATAL ERROR: could not dlopen liboemcamera.so: %s", dlerror());
@@ -1662,9 +1683,9 @@ static rat_t latitude[3];
 static rat_t longitude[3];
 static char lonref[2];
 static char latref[2];
-static char dateTime[20];
 static rat_t altitude;
-
+static rat_t gpsTimestamp[3];
+static char dateTime[20];
 static void addExifTag(exif_tag_id_t tagid, exif_tag_type_t type,
                         uint32_t count, uint8_t copy, void *data) {
 
@@ -1738,7 +1759,7 @@ void QualcommCameraHardware::setGpsParameters() {
 
     //Set Latitude
     str = mParameters.get(CameraParameters::KEY_GPS_LATITUDE);
-#if 0
+
     if(str != NULL) {
         setLatLon(EXIFTAGID_GPS_LATITUDE, str);
         //set Latitude Ref
@@ -1783,9 +1804,28 @@ void QualcommCameraHardware::setGpsParameters() {
             addExifTag(EXIFTAGID_GPS_ALTITUDE_REF, EXIF_BYTE, 1,
                         1, (void *)&ref);
     }
+#if 0
+    //set Gps TimeStamp
+    str = NULL;
+    str = mParameters.get(CameraParameters::KEY_GPS_TIMESTAMP);
+    if(str != NULL) {
 
+      long value = atol(str);
+      time_t unixTime;
+      struct tm *UTCTimestamp;
+
+      unixTime = (time_t)value;
+      UTCTimestamp = gmtime(&unixTime);
+
+      rat_t time_value[3] = { {UTCTimestamp->tm_hour, 1},
+                              {UTCTimestamp->tm_min, 1},
+                              {UTCTimestamp->tm_sec, 1} };
+
+      memcpy(&gpsTimestamp, &time_value, sizeof(gpsTimestamp));
+      addExifTag(EXIFTAGID_GPS_TIMESTAMP, EXIF_RATIONAL,
+                  3, 1, (void *)&gpsTimestamp);
+    }
 #endif
-
 }
 
 bool QualcommCameraHardware::native_jpeg_encode(void)
@@ -1819,10 +1859,8 @@ bool QualcommCameraHardware::native_jpeg_encode(void)
         }
     }
 
-//    jpeg_set_location();
-    if(mParameters.getInt(CameraParameters::KEY_GPS_STATUS) == 1) {
-	   setGpsParameters();
-	}
+    jpeg_set_location();
+
     //set TimeStamp
     const char *str = mParameters.get(CameraParameters::KEY_EXIF_DATETIME);
     if(str != NULL) {
@@ -1912,11 +1950,13 @@ void QualcommCameraHardware::jpeg_set_location()
     if (encode_location) {
         LOGD("setting image location ALT %d LAT %lf LON %lf",
              pt.altitude, pt.latitude, pt.longitude);
-/* Disabling until support is available.
+
+        setGpsParameters();
+        /* Disabling until support is available.
         if (!LINK_jpeg_encoder_setLocation(&pt)) {
             LOGE("jpeg_set_location: LINK_jpeg_encoder_setLocation failed.");
         }
-*/
+        */
     }
     else LOGV("not setting image location");
 }
@@ -2060,8 +2100,6 @@ void QualcommCameraHardware::runVideoThread(void *data)
 #endif
 
         } else LOGE("in video_thread get frame returned null");
-
-
     } // end of while loop
 
     mVideoThreadWaitLock.lock();
@@ -2997,6 +3035,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if ((rc = setJpegQuality(params)))  final_rc = rc;
     if ((rc = setAntibanding(params)))  final_rc = rc;
+    if ((rc = setExposureCompensation(params))) final_rc = rc;
 //    if ((rc = setAutoExposure(params))) final_rc = rc;
     if ((rc = setWhiteBalance(params))) final_rc = rc;
     if ((rc = setEffect(params)))       final_rc = rc;
@@ -3922,6 +3961,31 @@ status_t QualcommCameraHardware::setEffect(const CameraParameters& params)
         }
     }
     LOGE("Invalid effect value: %s", (str == NULL) ? "NULL" : str);
+    return BAD_VALUE;
+}
+
+status_t QualcommCameraHardware::setExposureCompensation(
+        const CameraParameters & params){
+
+    if(!strcmp(sensorType->name, "2mp")) {
+        LOGE("Exposure Compensation is not supported for this sensor");
+        return NO_ERROR;
+    }
+
+    int numerator = params.getInt(CameraParameters::KEY_EXPOSURE_COMPENSATION);
+    if(EXPOSURE_COMPENSATION_MINIMUM_NUMERATOR <= numerator &&
+            numerator <= EXPOSURE_COMPENSATION_MAXIMUM_NUMERATOR){
+        int16_t  numerator16 = (int16_t)(numerator & 0x0000ffff);
+        uint16_t denominator16 = EXPOSURE_COMPENSATION_DENOMINATOR;
+        uint32_t  value = 0;
+        value = numerator16 << 16 | denominator16;
+
+        mParameters.set(CameraParameters::KEY_EXPOSURE_COMPENSATION,
+                            numerator);
+        bool ret = native_set_parm(CAMERA_SET_PARM_EXPOSURE_COMPENSATION,
+                                    sizeof(value), (void *)&value);
+        return ret ? NO_ERROR : UNKNOWN_ERROR;
+    }
     return BAD_VALUE;
 }
 

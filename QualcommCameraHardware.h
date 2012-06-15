@@ -210,8 +210,8 @@ enum camera_ops {
     CAMERA_SET_PARM_SHARPNESS=4,
     CAMERA_SET_PARM_LUMA_ADAPTATION,
     CAMERA_SET_PARM_CONTRAST=6,
-    /*CAMERA_SET_PARM_EXPOSURE_COMPENSATION,*/
     CAMERA_SET_PARM_BRIGHTNESS=7,
+    CAMERA_SET_PARM_EXPOSURE_COMPENSATION,
     CAMERA_SET_PARM_FOCUS_RECT,
     CAMERA_SET_PARM_HUE=10,
     CAMERA_SET_PARM_SATURATION=11,
@@ -553,6 +553,7 @@ private:
     status_t setJpegQuality(const CameraParameters& params);
     status_t setAntibanding(const CameraParameters& params);
     status_t setEffect(const CameraParameters& params);
+    status_t setExposureCompensation(const CameraParameters &params);
     status_t setAutoExposure(const CameraParameters& params);
     status_t setWhiteBalance(const CameraParameters& params);
     status_t setFlash(const CameraParameters& params);

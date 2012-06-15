@@ -3179,26 +3179,32 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setPreviewSize(params))) final_rc = rc;
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if ((rc = setJpegQuality(params)))  final_rc = rc;
-    if ((rc = setAntibanding(params)))  final_rc = rc;
-    if ((rc = setExposureCompensation(params))) final_rc = rc;
-//    if ((rc = setAutoExposure(params))) final_rc = rc;
-    if ((rc = setWhiteBalance(params))) final_rc = rc;
     if ((rc = setEffect(params)))       final_rc = rc;
-    if ((rc = setFlash(params)))        final_rc = rc;
     if ((rc = setGpsLocation(params)))  final_rc = rc;
     if ((rc = setRotation(params)))     final_rc = rc;
-//    if ((rc = setZoom(params)))         final_rc = rc;
-    if ((rc = setFocusMode(params)))    final_rc = rc;
+    if ((rc = setZoom(params)))         final_rc = rc; //TODO: checkme
     if ((rc = setOrientation(params)))  final_rc = rc;
-    if ((rc = setBrightness(params)))   final_rc = rc;
-//    if ((rc = setLensshadeValue(params)))  final_rc = rc;
-    if ((rc = setISOValue(params)))  final_rc = rc;
+    if ((rc = setLensshadeValue(params)))  final_rc = rc; //TODO: checkme
     if ((rc = setPictureFormat(params))) final_rc = rc;
     if ((rc = setSharpness(params)))    final_rc = rc;
-//    if ((rc = setSaturation(params)))   final_rc = rc;
-    if ((rc = setSceneMode(params)))    final_rc = rc;
+    if ((rc = setSaturation(params)))   final_rc = rc; //TODO: checkme
+    if ((rc = setSceneMode(params)))  final_rc = rc;
     if ((rc = setContrast(params)))     final_rc = rc;
     if ((rc = setRecordSize(params)))  final_rc = rc;
+
+    const char *str = params.get(CameraParameters::KEY_SCENE_MODE);
+    int32_t value = attr_lookup(scenemode, sizeof(scenemode) / sizeof(str_map), str);
+
+    if((value != NOT_FOUND) && (value == CAMERA_BESTSHOT_OFF)) {
+        if ((rc = setAntibanding(params)))  final_rc = rc;
+        if ((rc = setAutoExposure(params))) final_rc = rc; //TODO: checkme
+        if ((rc = setExposureCompensation(params))) final_rc = rc;
+        if ((rc = setWhiteBalance(params))) final_rc = rc;
+        if ((rc = setFlash(params)))        final_rc = rc;
+        if ((rc = setFocusMode(params)))    final_rc = rc;
+        if ((rc = setBrightness(params)))   final_rc = rc;
+        if ((rc = setISOValue(params)))  final_rc = rc;
+    }
 
     LOGV("setParameters: X");
     return final_rc;

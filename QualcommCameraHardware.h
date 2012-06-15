@@ -568,6 +568,8 @@ private:
     status_t setSharpness(const CameraParameters& params);
     status_t setContrast(const CameraParameters& params);
     status_t setSaturation(const CameraParameters& params);
+    status_t setSceneMode(const CameraParameters& params);
+
     void setGpsParameters();
     void storePreviewFrameForPostview();
     bool isValidDimension(int w, int h);

@@ -1154,8 +1154,11 @@ void QualcommCameraHardware::initDefaultParameters()
 
 void QualcommCameraHardware::findSensorType(){
     LOGV("%s E", __FUNCTION__);
+    /* This call segfaults. Called too early? */
+#if 0
     mDimension.picture_width = DEFAULT_PICTURE_WIDTH;
     mDimension.picture_height = DEFAULT_PICTURE_HEIGHT;
+
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
                     sizeof(cam_ctrl_dimension_t), &mDimension);
     if (ret) {
@@ -1170,8 +1173,9 @@ void QualcommCameraHardware::findSensorType(){
         }
     }
     LOGV("sensorType NOT found");
-    //default to 5 mp
-    sensorType = sensorTypes;
+#endif
+    //default to 2 mp
+    sensorType = sensorTypes + 3;
     return;
 }
 

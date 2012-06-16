@@ -80,6 +80,8 @@ extern "C" {
 
 #define PAD_TO_2K(x) (((x)+2047)& ~2047)
 
+#define LOGV LOGD
+
 #if DLOPEN_LIBMMCAMERA
 #include <dlfcn.h>
 
@@ -768,7 +770,7 @@ static struct msm_frame * cam_frame_get_video()
            p = (struct msm_frame *)node->f;
            free (node);
        }
-       LOGV("cam_frame_get_video... out = %x\n", p->buffer);
+       LOGV("cam_frame_get_video... out = %lx\n", p->buffer);
     }
     return p;
 }
@@ -806,7 +808,7 @@ static void cam_frame_post_video (struct msm_frame *p)
     pthread_mutex_unlock(&(g_busy_frame_queue.mut));
     pthread_cond_signal(&(g_busy_frame_queue.wait));
 
-    LOGV("cam_frame_post_video... out = %x\n", p->buffer);
+    LOGV("cam_frame_post_video... out = %lx\n", p->buffer);
 
     return;
 }
@@ -1918,14 +1920,13 @@ bool QualcommCameraHardware::native_set_parm(
       LOGV("video_width: %d, video_height: %d, picture_width: %d, picture_height: %d, "
          "display_width: %d, display_height: %d, orig_picture_dx: %d, orig_picture_dy: %d, "
          "ui_thumbnail_width: %d, ui_thumbnail_height:%d, thumbnail_width: %d, thumbnail_height: %d, "
-         "raw_picture_height: %d, raw_picture_width: %d, filler7: %d, filler8: %d"
+         "raw_picture_height: %d, raw_picture_width: %d, filler7: %d, filler8: %d",
          t->video_width, t->video_height, t->picture_width, t->picture_height,
          t->display_width, t->display_height, t->orig_picture_dx, t->orig_picture_dy,
          t->ui_thumbnail_width, t->ui_thumbnail_height, t->thumbnail_width, t->thumbnail_height,
          t->raw_picture_height, t->raw_picture_width, t->filler7, t->filler8);
-      LOGV("skipping this parameter");
     }
-    else
+
     if (ioctl(mCameraControlFd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd) < 0 ||
                 ctrlCmd.status != CAM_CTRL_SUCCESS) {
         LOGE("%s: error (%s): fd %d, type %d, length %d, status %d",
@@ -2004,7 +2005,9 @@ void QualcommCameraHardware::runFrameThread(void *data)
     if (libhandle)
 #endif
     {
+        LOGV("before LINK_cam_frame");
         LINK_cam_frame(data);
+        LOGV("after LINK_cam_frame");
     }
 
     mPreviewHeap.clear();
@@ -2071,10 +2074,10 @@ void QualcommCameraHardware::runVideoThread(void *data)
 
         if(vframe != NULL) {
             // Find the offset within the heap of the current buffer.
-            LOGV("Got video frame :  buffer %d base %d ", vframe->buffer, mRecordHeap->mHeap->base());
+            LOGV("Got video frame :  buffer %lu base %p ", vframe->buffer, mRecordHeap->mHeap->base());
             ssize_t offset =
                 (ssize_t)vframe->buffer - (ssize_t)mRecordHeap->mHeap->base();
-            LOGV("offset = %d , alignsize = %d , offset later = %d", offset, mRecordHeap->mAlignedBufferSize, (offset / mRecordHeap->mAlignedBufferSize));
+            LOGV("offset = %lu , alignsize = %d , offset later = %ld", offset, mRecordHeap->mAlignedBufferSize, (offset / mRecordHeap->mAlignedBufferSize));
 
             offset /= mRecordHeap->mAlignedBufferSize;
 
@@ -3730,7 +3733,7 @@ void QualcommCameraHardware::releaseRecordingFrame(
         size_t size;
         sp<IMemoryHeap> heap = mem->getMemory(&offset, &size);
         msm_frame* releaseframe = NULL;
-        LOGV(" in release recording frame :  heap base %d offset %d buffer %d ", heap->base(), offset, heap->base() + offset );
+        LOGV(" in release recording frame :  heap base %p offset %lu buffer %p ", heap->base(), offset, heap->base() + offset );
         int cnt;
         for (cnt = 0; cnt < kRecordBufferCount; cnt++) {
             if((unsigned int)recordframes[cnt].buffer == ((unsigned int)heap->base()+ offset)){

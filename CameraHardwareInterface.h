@@ -46,10 +46,12 @@ typedef void (*notify_callback)(int32_t msgType,
 typedef void (*data_callback)(int32_t msgType,
                               const sp<IMemory>& dataPtr,
                               void* user);
+
 typedef void (*data_callback_timestamp)(nsecs_t timestamp,
                                         int32_t msgType,
                                         const sp<IMemory>& dataPtr,
                                         void* user);
+
 /**
  * CameraHardwareInterface.h defines the interface to the
  * camera hardware abstraction layer, used for setting and getting
@@ -126,18 +128,12 @@ public:
     virtual status_t    startPreview() = 0;
 
 #ifdef USE_GETBUFFERINFO
-    /**
+     /**
      * Query the recording buffer information from HAL.
      * This is needed because the opencore expects the buffer
      * information before starting the recording.
      */
     virtual status_t    getBufferInfo(sp<IMemory>& Frame, size_t *alignedSize) = 0;
-#endif
-#ifdef CAF_CAMERA_GB_REL
-    /**
-     * Encode the YUV data.
-     */
-    virtual void        encodeData() = 0;
 #endif
 
     /**
@@ -204,9 +200,7 @@ public:
      */
     virtual status_t    cancelPicture() = 0;
 
-    /**
-     * Set the camera parameters. This returns BAD_VALUE if any parameter is
-     * invalid or not supported. */
+    /** Set the camera parameters. */
     virtual status_t    setParameters(const CameraParameters& params) = 0;
 
     /** Return the camera parameters. */
@@ -227,8 +221,10 @@ public:
      * Dump state of the camera hardware
      */
     virtual status_t dump(int fd, const Vector<String16>& args) const = 0;
-
 };
+
+/** factory function to instantiate a camera hardware object */
+extern "C" sp<CameraHardwareInterface> openCameraHardware();
 
 /**
  * The functions need to be provided by the camera HAL.

@@ -911,6 +911,21 @@ QualcommCameraHardware::QualcommCameraHardware()
     }
 
     memset(&mDimension, 0, sizeof(mDimension));
+
+    /* Hardcode the values - segfault workaround */
+    mDimension.video_width = 768;
+    mDimension.video_height = 432;
+    mDimension.picture_width = 1280;
+    mDimension.picture_height = 720;
+    mDimension.display_width = 768;
+    mDimension.display_height = 432;
+    mDimension.ui_thumbnail_width = 256;
+    mDimension.ui_thumbnail_height = 154;
+    mDimension.thumbnail_width = 256;
+    mDimension.thumbnail_height = 154;
+    mDimension.raw_picture_height = 1200;
+    mDimension.raw_picture_width = 1600;
+
     memset(&mCrop, 0, sizeof(mCrop));
     memset(&zoomCropInfo, 0, sizeof(zoom_crop_info));
     storeTargetType();

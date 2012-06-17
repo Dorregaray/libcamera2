@@ -1376,7 +1376,7 @@ static bool native_get_maxzoom(int camfd, void *pZm)
 {
     LOGV("native_get_maxzoom E");
 
-    struct msm_ctrl_cmd ctrlCmd;
+    /*struct msm_ctrl_cmd ctrlCmd;
     int32_t *pZoom = (int32_t *)pZm;
 
     ctrlCmd.type       = CAMERA_GET_PARM_MAXZOOM;
@@ -1392,7 +1392,8 @@ static bool native_get_maxzoom(int camfd, void *pZm)
         return false;
     }
     LOGD("ctrlCmd.value = %d", *(int32_t *)ctrlCmd.value);
-    memcpy(pZoom, (int32_t *)ctrlCmd.value, sizeof(int32_t));
+    memcpy(pZoom, (int32_t *)ctrlCmd.value, sizeof(int32_t));*/
+    *pZoom = 61; /* hardcode max zoom value for now */
 
     LOGV("native_get_maxzoom X");
     return true;

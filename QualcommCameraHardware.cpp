@@ -4230,8 +4230,6 @@ status_t QualcommCameraHardware::setJpegQuality(const CameraParameters& params) 
 
 status_t QualcommCameraHardware::setEffect(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
-
     const char *str_wb = mParameters.get(CameraParameters::KEY_WHITE_BALANCE);
     int32_t value_wb = attr_lookup(whitebalance, sizeof(whitebalance) / sizeof(str_map), str_wb);
     const char *str = params.get(CameraParameters::KEY_EFFECT);
@@ -4268,12 +4266,10 @@ status_t QualcommCameraHardware::setEffect(const CameraParameters& params)
 status_t QualcommCameraHardware::setExposureCompensation(
         const CameraParameters & params){
 
-    LOGV("%s E", __FUNCTION__);
     if(!strcmp(sensorType->name, "2mp")) {
         LOGE("Exposure Compensation is not supported for this sensor");
         return NO_ERROR;
     }
-
     int numerator = params.getInt(CameraParameters::KEY_EXPOSURE_COMPENSATION);
     if(EXPOSURE_COMPENSATION_MINIMUM_NUMERATOR <= numerator &&
             numerator <= EXPOSURE_COMPENSATION_MAXIMUM_NUMERATOR){
@@ -4293,7 +4289,6 @@ status_t QualcommCameraHardware::setExposureCompensation(
 
 status_t QualcommCameraHardware::setAutoExposure(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if(!strcmp(sensorType->name, "2mp")) {
         LOGE("Auto Exposure not supported for this sensor");
         return NO_ERROR;
@@ -4314,7 +4309,6 @@ status_t QualcommCameraHardware::setAutoExposure(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setSharpness(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if(!strcmp(sensorType->name, "2mp")) {
         LOGE("Sharpness not supported for this sensor");
         return NO_ERROR;
@@ -4333,12 +4327,10 @@ status_t QualcommCameraHardware::setSharpness(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setContrast(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if(!strcmp(sensorType->name, "2mp")) {
         LOGE("Contrast not supported for this sensor");
         return NO_ERROR;
     }
-
     const char *str = params.get(CameraParameters::KEY_SCENE_MODE);
     int32_t value = attr_lookup(scenemode, sizeof(scenemode) / sizeof(str_map), str);
 
@@ -4362,12 +4354,10 @@ status_t QualcommCameraHardware::setContrast(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setSaturation(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if(!strcmp(sensorType->name, "2mp")) {
         LOGE("Saturation not supported for this sensor");
         return NO_ERROR;
     }
-
     const char *str = params.get(CameraParameters::KEY_EFFECT);
     int32_t value = attr_lookup(effects, sizeof(effects) / sizeof(str_map), str);
 
@@ -4443,12 +4433,10 @@ status_t QualcommCameraHardware::setWhiteBalance(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setFlash(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if (!mSensorInfo.flash_enabled) {
         LOGV("%s: flash not supported", __FUNCTION__);
         return NO_ERROR;
     }
-
     const char *str = params.get(CameraParameters::KEY_FLASH_MODE);
     if (str != NULL) {
         int32_t value = attr_lookup(flash, sizeof(flash) / sizeof(str_map), str);
@@ -4465,7 +4453,6 @@ status_t QualcommCameraHardware::setFlash(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setAntibanding(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if(!strcmp(sensorType->name, "2mp")) {
         LOGE("Parameter AntiBanding is not supported for this sensor");
         return NO_ERROR;
@@ -4495,7 +4482,6 @@ status_t QualcommCameraHardware::setAntibanding(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
     if( (!strcmp(sensorType->name, "2mp")) ||
         (!strcmp(mSensorInfo.name, "vx6953")) ||
 	(!strcmp(mSensorInfo.name, "VX6953")) ) {

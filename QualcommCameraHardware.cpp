@@ -3229,13 +3229,13 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if (final_rc) LOGV("setZoom failed");
     if ((rc = setOrientation(params)))  final_rc = rc;
     if (final_rc) LOGV("setOrientation failed");
-    if ((rc = setLensshadeValue(params)))  final_rc = rc; //TODO: checkme
+    if ((rc = setLensshadeValue(params)))  final_rc = rc;
     if (final_rc) LOGV("setLensshadeValue failed");
     if ((rc = setPictureFormat(params))) final_rc = rc;
     if (final_rc) LOGV("setPictureFormat failed");
     if ((rc = setSharpness(params)))    final_rc = rc;
     if (final_rc) LOGV("setSharpness failed");
-    if ((rc = setSaturation(params)))   final_rc = rc; //TODO: checkme
+    if ((rc = setSaturation(params)))   final_rc = rc;
     if (final_rc) LOGV("setSaturation failed");
     if ((rc = setSceneMode(params)))  final_rc = rc;
     if (final_rc) LOGV("setSceneMode failed");
@@ -3251,7 +3251,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
         LOGV("setting Scenemode related params");
         if ((rc = setAntibanding(params)))  final_rc = rc;
         if (final_rc) LOGV("setAntibanding failed");
-        if ((rc = setAutoExposure(params))) final_rc = rc; //TODO: checkme
+        if ((rc = setAutoExposure(params))) final_rc = rc;
         if (final_rc) LOGV("setAutoExposure failed");
         if ((rc = setExposureCompensation(params))) final_rc = rc;
         if (final_rc) LOGV("setExposureCompensation failed");
@@ -4392,7 +4392,11 @@ status_t QualcommCameraHardware::setSaturation(const CameraParameters& params)
 }
 
 status_t QualcommCameraHardware::setBrightness(const CameraParameters& params) {
-    LOGV("%s E", __FUNCTION__);
+
+        if(!strcmp(sensorType->name, "2mp")) {
+            LOGE("Set Brightness not supported for this sensor");
+            return NO_ERROR;
+        }
         int brightness = params.getInt("luma-adaptation");
         if (mBrightness !=  brightness) {
             LOGV(" new brightness value : %d ", brightness);
@@ -4408,8 +4412,10 @@ status_t QualcommCameraHardware::setBrightness(const CameraParameters& params) {
 
 status_t QualcommCameraHardware::setWhiteBalance(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
-
+    if(!strcmp(sensorType->name, "2mp")) {
+        LOGE("WhiteBalance not supported for this sensor");
+        return NO_ERROR;
+    }
     const char *str_effect = mParameters.get(CameraParameters::KEY_EFFECT);
     int32_t value_effect = attr_lookup(effects, sizeof(effects) / sizeof(str_map), str_effect);
 
@@ -4512,7 +4518,10 @@ status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& param
 }
 
 status_t  QualcommCameraHardware::setISOValue(const CameraParameters& params) {
-    LOGV("%s E", __FUNCTION__);
+    if(!strcmp(sensorType->name, "2mp")) {
+        LOGE("Parameter ISO Value is not supported for this sensor");
+        return NO_ERROR;
+    }
     int8_t temp_hjr;
     const char *str = params.get(CameraParameters::KEY_ISO_MODE);
     if (str != NULL) {
@@ -4545,9 +4554,11 @@ status_t  QualcommCameraHardware::setISOValue(const CameraParameters& params) {
 
 status_t QualcommCameraHardware::setSceneMode(const CameraParameters& params)
 {
-    LOGV("%s E", __FUNCTION__);
+    if(!strcmp(sensorType->name, "2mp")) {
+        LOGE("Parameter Scenemode not supported for this sensor");
+        return NO_ERROR;
+    }
     const char *str = params.get(CameraParameters::KEY_SCENE_MODE);
-
     if (str != NULL) {
         int32_t value = attr_lookup(scenemode, sizeof(scenemode) / sizeof(str_map), str);
         if (value != NOT_FOUND) {

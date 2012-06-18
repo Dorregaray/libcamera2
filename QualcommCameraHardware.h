@@ -261,7 +261,9 @@ enum camera_ops {
     CAMERA_PREPARE_SNAPSHOT=55,
     CAMERA_SET_FPS_MODE,
     CAMERA_SET_PARM_SCENE_MODE,
-    CAMERA_SET_CAF=62, /* FIXME */
+    CAMERA_SET_PARM_AEC_ROI=61, /* CHECKME */
+    CAMERA_SET_CAF=62, /* CHECKME */
+    CAMERA_SET_PARM_AF_ROI=65, /* CHECKME */
     CAMERA_START_LIVESHOT = 99 /* FIXME */
 };
 
@@ -594,6 +596,8 @@ private:
     status_t setContrast(const CameraParameters& params);
     status_t setSaturation(const CameraParameters& params);
     status_t setSceneMode(const CameraParameters& params);
+    status_t setContinuousAf(const CameraParameters& params);
+    status_t setTouchAfAec(const CameraParameters& params);
 
     void setGpsParameters();
     void storePreviewFrameForPostview();

@@ -207,7 +207,7 @@ enum camera_ops {
     CAMERA_SET_PARM_DIMENSION=1,
     CAMERA_SET_PARM_ZOOM=2,
     CAMERA_SET_PARM_SENSOR_POSITION,
-    CAMERA_SET_PARM_SHARPNESS=4,
+    CAMERA_SET_PARM_SHARPNESS=4, /* 9? */
     CAMERA_SET_PARM_LUMA_ADAPTATION,
     CAMERA_SET_PARM_CONTRAST=6,
     CAMERA_SET_PARM_BRIGHTNESS=7,
@@ -232,7 +232,7 @@ enum camera_ops {
     CAMERA_SET_PARM_ISO=26,
     CAMERA_SET_PARM_BESTSHOT_MODE,
     CAMERA_SET_PARM_PREVIEW_FPS,
-    CAMERA_SET_PARM_AF_MODE,
+    CAMERA_SET_PARM_AF_MODE=30,
     CAMERA_SET_PARM_HISTOGRAM,
     CAMERA_SET_PARM_FLASH_STATE,
     CAMERA_SET_PARM_FRAME_TIMESTAMP,
@@ -257,9 +257,10 @@ enum camera_ops {
     CAMERA_AUTO_FOCUS_CANCEL,
     CAMERA_GET_PARM_FOCUS_STEP,
     CAMERA_ENABLE_AFD,
-    CAMERA_PREPARE_SNAPSHOT,
+    CAMERA_PREPARE_SNAPSHOT=55,
     CAMERA_SET_FPS_MODE,
     CAMERA_SET_PARM_SCENE_MODE,
+    CAMERA_SET_CAF=62, /* FIXME */
     CAMERA_START_LIVESHOT = 99 /* FIXME */
 };
 
@@ -592,6 +593,7 @@ private:
     status_t setContrast(const CameraParameters& params);
     status_t setSaturation(const CameraParameters& params);
     status_t setSceneMode(const CameraParameters& params);
+    status_t setContinuousAf(const CameraParameters& params);
 
     void setGpsParameters();
     void storePreviewFrameForPostview();

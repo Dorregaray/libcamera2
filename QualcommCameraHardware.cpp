@@ -2428,6 +2428,7 @@ bool QualcommCameraHardware::initPreview()
     LOGV("%s E", __FUNCTION__);
     // See comments in deinitPreview() for why we have to wait for the frame
     // thread here, and why we can't use pthread_join().
+    const char * pmem_region;
     mParameters.getPreviewSize(&previewWidth, &previewHeight);
 
     //Get the Record sizes
@@ -2495,11 +2496,17 @@ bool QualcommCameraHardware::initPreview()
     }
     mInSnapshotModeWaitLock.unlock();
 
+     /*Temporary migrating the preview buffers to smi pool for 8x60 till the bug is resolved in the pmem_adsp pool*/
+    if(mCurrentTarget == TARGET_MSM8660)
+        pmem_region = "/dev/pmem_smipool";
+    else
+        pmem_region = "/dev/pmem_adsp";
+
     int cnt = 0;
     mPreviewFrameSize = previewWidth * previewHeight * 3/2;
     int CbCrOffset = PAD_TO_WORD(previewWidth * previewHeight);
     dstOffset = 0;
-    mPreviewHeap = new PmemPool("/dev/pmem_adsp",
+    mPreviewHeap = new PmemPool((pmem_region,
                                 MemoryHeapBase::READ_ONLY | MemoryHeapBase::NO_CACHING,
                                 mCameraControlFd,
                                 MSM_PMEM_PREVIEW, //MSM_PMEM_OUTPUT2,

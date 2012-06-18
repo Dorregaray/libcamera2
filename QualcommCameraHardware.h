@@ -264,6 +264,8 @@ enum camera_ops {
     CAMERA_SET_PARM_SCENE_MODE,
     CAMERA_SET_PARM_AEC_ROI=61, /* CHECKME */
     CAMERA_SET_CAF=62, /* CHECKME */
+    CAMERA_SET_PARM_BL_DETECTION_ENABLE,
+    CAMERA_SET_PARM_SNOW_DETECTION_ENABLE,
     CAMERA_SET_PARM_AF_ROI=65, /* CHECKME */
     CAMERA_START_LIVESHOT = 99 /* FIXME */
 };
@@ -375,6 +377,7 @@ struct target_map {
 struct board_property{
     targetType target;
     unsigned int previewSizeMask;
+    bool hasSceneDetect;
 };
 
 namespace android {
@@ -569,6 +572,7 @@ private:
     void filterPictureSizes();
     void filterPreviewSizes();
     void storeTargetType();
+    bool supportsSceneDetection();
 
     void initDefaultParameters();
     void findSensorType();
@@ -600,6 +604,7 @@ private:
     status_t setSceneMode(const CameraParameters& params);
     status_t setContinuousAf(const CameraParameters& params);
     status_t setTouchAfAec(const CameraParameters& params);
+    status_t setSceneDetect(const CameraParameters& params);
 
     void setGpsParameters();
     void storePreviewFrameForPostview();

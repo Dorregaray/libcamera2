@@ -1073,10 +1073,6 @@ void QualcommCameraHardware::initDefaultParameters()
                     THUMBNAIL_WIDTH_STR); // informative
     mParameters.set(CameraParameters::KEY_JPEG_THUMBNAIL_HEIGHT,
                     THUMBNAIL_HEIGHT_STR); // informative
-    mDimension.ui_thumbnail_width =
-            thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
-    mDimension.ui_thumbnail_height =
-            thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
     mParameters.set(CameraParameters::KEY_JPEG_THUMBNAIL_QUALITY, "90");
 
     mParameters.set(CameraParameters::KEY_ANTIBANDING,

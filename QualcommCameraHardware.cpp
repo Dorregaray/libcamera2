@@ -3260,6 +3260,18 @@ status_t QualcommCameraHardware::cancelAutoFocus()
 void QualcommCameraHardware::runSnapshotThread(void *data)
 {
     LOGV("runSnapshotThread E");
+#if DLOPEN_LIBMMCAMERA
+    // We need to maintain a reference to libqcamera.so for the duration of the
+    // Snapshot thread, because we do not know when it will exit relative to the
+    // lifetime of this object.  We do not want to dlclose() libqcamera while
+    // LINK_cam_frame is still running.
+    void *libhandle = ::dlopen("liboemcamera.so", RTLD_NOW);
+    LOGV("SNAPSHOT: loading libqcamera at %p", libhandle);
+    if (!libhandle) {
+        LOGE("FATAL ERROR: could not dlopen liboemcamera.so: %s", dlerror());
+    }
+#endif
+
     if(mSnapshotFormat == PICTURE_FORMAT_JPEG){
         if (native_start_snapshot(mCameraControlFd))
             receiveRawPicture();
@@ -3278,7 +3290,6 @@ void QualcommCameraHardware::runSnapshotThread(void *data)
     mInSnapshotModeWaitLock.unlock();
 
     mSnapshotFormat = 0;
-
     mJpegThreadWaitLock.lock();
     while (mJpegThreadRunning) {
         LOGV("runSnapshotThread: waiting for jpeg thread to complete.");
@@ -3287,13 +3298,24 @@ void QualcommCameraHardware::runSnapshotThread(void *data)
     }
     mJpegThreadWaitLock.unlock();
     //clear the resources
-    LINK_jpeg_encoder_join();
+#if DLOPEN_LIBMMCAMERA
+    if(libhandle)
+#endif
+    {
+        LINK_jpeg_encoder_join();
+    }
     deinitRaw();
 
     mSnapshotThreadWaitLock.lock();
     mSnapshotThreadRunning = false;
     mSnapshotThreadWait.signal();
     mSnapshotThreadWaitLock.unlock();
+#if DLOPEN_LIBMMCAMERA
+    if (libhandle) {
+        ::dlclose(libhandle);
+        LOGV("SNAPSHOT: dlclose(libqcamera)");
+    }
+#endif
 
     LOGV("runSnapshotThread X");
 }

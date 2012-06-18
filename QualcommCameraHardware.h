@@ -136,6 +136,7 @@ enum {
 	LED_MODE_OFF,
 	LED_MODE_ON,
 	LED_MODE_AUTO,
+	LED_MODE_TORCH
 };
 
 typedef enum {
@@ -593,7 +594,6 @@ private:
     status_t setContrast(const CameraParameters& params);
     status_t setSaturation(const CameraParameters& params);
     status_t setSceneMode(const CameraParameters& params);
-    status_t setContinuousAf(const CameraParameters& params);
 
     void setGpsParameters();
     void storePreviewFrameForPostview();

@@ -669,6 +669,7 @@ private:
     int kPreviewBufferCountActual;
     int previewWidth, previewHeight;
     int videoWidth, videoHeight;
+    bool mSnapshotDone;
 };
 
 }; // namespace android

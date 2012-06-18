@@ -181,6 +181,11 @@ union zoomimage
 #define DEFAULT_PREVIEW_WIDTH 800
 #define DEFAULT_PREVIEW_HEIGHT 480
 
+//Default FPS
+#define MINIMUM_FPS 5
+#define MAXIMUM_FPS 30
+#define DEFAULT_FPS MAXIMUM_FPS
+
 /*
  * Modifying preview size requires modification
  * in bitmasks for boardproperties
@@ -705,6 +710,7 @@ static String8 picture_format_values;
 static String8 scenemode_values;
 static String8 continuous_af_values;
 static String8 zoom_ratio_values;
+static String8 preview_frame_rate_values;
 
 static String8 create_sizes_str(const camera_size_type *sizes, int len) {
     String8 str;
@@ -746,6 +752,22 @@ static String8 create_str(int16_t *arr, int length){
     for (int i =1;i<length;i++){
         snprintf(buffer, sizeof(buffer), ",%d",arr[i]);
         str.append(buffer);
+    }
+    return str;
+}
+
+static String8 create_values_range_str(int min, int max){
+    String8 str;
+    char buffer[32];
+
+    if(min <= max){
+        snprintf(buffer, sizeof(buffer), "%d", min);
+        str.append(buffer);
+
+        for (int i = min + 1; i <= max; i++) {
+            snprintf(buffer, sizeof(buffer), ",%d", i);
+            str.append(buffer);
+        }
     }
     return str;
 }
@@ -948,6 +970,7 @@ QualcommCameraHardware::QualcommCameraHardware()
       mDataCallback(0),
       mDataCallbackTimestamp(0),
       mCallbackCookie(0),
+      mInitialized(false),
       mDebugFps(0)
 {
     LOGI("QualcommCameraHardware constructor E");
@@ -1121,6 +1144,8 @@ void QualcommCameraHardware::initDefaultParameters()
                     "zoom to zero");
             mMaxZoom = 0;
         }
+        preview_frame_rate_values = create_values_range_str(
+            MINIMUM_FPS, MAXIMUM_FPS);
         parameter_string_initialized = true;
 
         scenemode_values = create_values_str(
@@ -1131,7 +1156,10 @@ void QualcommCameraHardware::initDefaultParameters()
     mDimension.display_width = DEFAULT_PREVIEW_WIDTH;
     mDimension.display_height = DEFAULT_PREVIEW_HEIGHT;
 
-    mParameters.setPreviewFrameRate(15);
+    mParameters.setPreviewFrameRate(DEFAULT_FPS);
+    mParameters.set(
+            CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATES,
+            preview_frame_rate_values.string());
     mParameters.setPreviewFormat("yuv420sp"); // informative
 
     mParameters.setPictureSize(DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT);
@@ -1253,6 +1281,8 @@ void QualcommCameraHardware::initDefaultParameters()
     Mutex::Autolock l(&mCamframeTimeoutLock);
     camframe_timeout_flag = FALSE;
     mPostViewHeap = NULL;
+
+    mInitialized = true;
 
     LOGI("initDefaultParameters X");
 }
@@ -3432,6 +3462,8 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
 
     if ((rc = setPreviewSize(params))) final_rc = rc;
     if (final_rc) LOGV("setPreviewSize failed");
+    if ((rc = setPreviewFrameRate(params))) final_rc = rc;
+    if (final_rc) LOGV("setPreviewFrameRate failed");
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if (final_rc) LOGV("setPictureSize failed");
     if ((rc = setJpegQuality(params)))  final_rc = rc;
@@ -4437,6 +4469,27 @@ status_t QualcommCameraHardware::setPreviewSize(const CameraParameters& params)
     }
     LOGE("Invalid preview size requested: %dx%d", width, height);
     return BAD_VALUE;
+}
+
+status_t QualcommCameraHardware::setPreviewFrameRate(const CameraParameters& params)
+{
+    uint16_t previousFps = (uint16_t)mParameters.getPreviewFrameRate();
+    uint16_t fps = (uint16_t)params.getPreviewFrameRate();
+    LOGV("requested preview frame rate  is %u", fps);
+
+    if(mInitialized && (fps == previousFps)){
+        LOGV("fps same as previous fps");
+        return NO_ERROR;
+    }
+
+    if(MINIMUM_FPS <= fps && fps <=MAXIMUM_FPS){
+        mParameters.setPreviewFrameRate(fps);
+        bool ret = native_set_parm(CAMERA_SET_PARM_FPS,
+                sizeof(fps), (void *)&fps);
+        return ret ? NO_ERROR : UNKNOWN_ERROR;
+    }
+    return BAD_VALUE;
+
 }
 
 status_t QualcommCameraHardware::setPictureSize(const CameraParameters& params)

@@ -86,6 +86,7 @@ typedef int liveshot_status;
 #define ACTIVE_VIDEO_BUFFERS 3
 
 #define PAD_TO_2K(x) (((x)+2047)& ~2047)
+#define PAD_TO_4K(x) (x) /* FIXME */
 
 #define LOGV LOGD
 
@@ -332,6 +333,7 @@ static int kRecordBufferCount;
  */
 static bool mVpeEnabled;
 
+static int firstPreviewFrame;
 
 namespace android {
 
@@ -2043,12 +2045,13 @@ static bool native_start_video(int camfd)
     ctrlCmd.value = NULL;
     ctrlCmd.resp_fd = camfd;
 
-    LOGV("%s E", __FUNCTION__);
+    LOGI("%s : E", __FUNCTION__);
     if ((ret = ioctl(camfd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd)) < 0) {
         LOGE("native_start_video: ioctl failed. ioctl return value is %d \n",
         ret);
         return false;
     }
+    LOGI("%s : X", __FUNCTION__);
 
   /* TODO: Check status of postprocessing if there is any,
    *       PP status should be in  ctrlCmd */
@@ -2072,12 +2075,13 @@ static bool native_stop_video(int camfd)
     ctrlCmd.value = NULL;
     ctrlCmd.resp_fd = camfd;
 
-    LOGV("%s E", __FUNCTION__);
+    LOGI("%s: E", __FUNCTION__);
     if ((ret = ioctl(camfd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd)) < 0) {
         LOGE("native_stop_video: ioctl failed. ioctl return value is %d \n",
         ret);
         return false;
     }
+    LOGI("%s: X", __FUNCTION__);
 
     return true;
 }
@@ -2736,7 +2740,7 @@ bool QualcommCameraHardware::initPreview()
     if(!recordSize) {
         //If application didn't set this parameter string, use the values from
         //getPreviewSize() as video dimensions.
-        LOGI("No Record Size requested, use the preview dimensions");
+        LOGV("No Record Size requested, use the preview dimensions");
         videoWidth = previewWidth;
         videoHeight = previewHeight;
     } else {
@@ -3046,8 +3050,9 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
          * as thumbnail(Not changing the terminology to keep changes minimum).
          */
         if(rawHeight >= previewHeight) {
-            mDimension.ui_thumbnail_width = previewWidth;
             mDimension.ui_thumbnail_height = previewHeight;
+            mDimension.ui_thumbnail_width =
+                        (previewHeight * rawWidth) / rawHeight;
         }
     }
 
@@ -3055,22 +3060,13 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
             mDimension.ui_thumbnail_width,
             mDimension.ui_thumbnail_height);
 
-    thumbnailBufferSize = mDimension.ui_thumbnail_width *
-                          mDimension.ui_thumbnail_height * 3 / 2;
-    int CbCrOffsetThumb = PAD_TO_WORD(mDimension.ui_thumbnail_width *
-                          mDimension.ui_thumbnail_height);
 #if 0
     if(mPreviewFormat == CAMERA_YUV_420_NV21_ADRENO){
         mDimension.main_img_format = CAMERA_YUV_420_NV21_ADRENO;
         mDimension.thumb_format = CAMERA_YUV_420_NV21_ADRENO;
-        thumbnailBufferSize = PAD_TO_4K(CEILING32(mDimension.ui_thumbnail_width) *
-                              CEILING32(mDimension.ui_thumbnail_height)) +
-                              2 * (CEILING32(mDimension.ui_thumbnail_width/2) *
-                                CEILING32(mDimension.ui_thumbnail_height/2));
-        CbCrOffsetThumb = PAD_TO_4K(CEILING32(mDimension.ui_thumbnail_width) *
-                              CEILING32(mDimension.ui_thumbnail_height));
     }
 #endif
+
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
@@ -3079,6 +3075,19 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
     if(!ret) {
         LOGE("initRaw X: failed to set dimension");
         return false;
+    }
+
+    thumbnailBufferSize = mDimension.ui_thumbnail_width *
+                          mDimension.ui_thumbnail_height * 3 / 2;
+    int CbCrOffsetThumb = PAD_TO_WORD(mDimension.ui_thumbnail_width *
+                          mDimension.ui_thumbnail_height);
+    if(mPreviewFormat == CAMERA_YUV_420_NV21_ADRENO){
+        thumbnailBufferSize = PAD_TO_4K(CEILING32(mDimension.ui_thumbnail_width) *
+                              CEILING32(mDimension.ui_thumbnail_height)) +
+                              2 * (CEILING32(mDimension.ui_thumbnail_width/2) *
+                                CEILING32(mDimension.ui_thumbnail_height/2));
+        CbCrOffsetThumb = PAD_TO_4K(CEILING32(mDimension.ui_thumbnail_width) *
+                              CEILING32(mDimension.ui_thumbnail_height));
     }
 
     if (mJpegHeap != NULL) {
@@ -3390,6 +3399,8 @@ status_t QualcommCameraHardware::startPreviewInternal()
     //Reset the Gps Information
     exif_table_numEntries = 0;
 
+    firstPreviewFrame = FALSE;
+
     LOGV("startPreviewInternal X");
     return NO_ERROR;
 }
@@ -3450,6 +3461,9 @@ void QualcommCameraHardware::stopPreviewInternal()
 	}
 	else LOGE("stopPreviewInternal: failed to stop preview");
     }
+
+    firstPreviewFrame = TRUE;
+
     LOGI("stopPreviewInternal X: %d", mCameraRunning);
 }
 
@@ -4265,10 +4279,14 @@ void QualcommCameraHardware::receiveLiveSnapshot(uint32_t jpeg_size)
 void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
 {
     LOGV("receivePreviewFrame E");
-
     if (!mCameraRunning) {
         LOGE("ignoring preview callback--camera has been stopped");
         return;
+    }
+
+    if(firstPreviewFrame) {
+        LOGI("receivePreviewFrame: got first preview frame");
+        firstPreviewFrame = FALSE;
     }
 
     if (UNLIKELY(mDebugFps)) {
@@ -4498,7 +4516,7 @@ status_t QualcommCameraHardware::setDIS() {
 #endif
     bool ret = true;
 #if 0
-    LOGI("mDisEnabled = %d", mDisEnabled);
+    LOGV("mDisEnabled = %d", mDisEnabled);
 
     int video_frame_cbcroffset;
     video_frame_cbcroffset = PAD_TO_WORD(videoWidth * videoHeight);
@@ -5495,7 +5513,7 @@ status_t QualcommCameraHardware::setPreviewFormat(const CameraParameters& params
 status_t QualcommCameraHardware::setStrTextures(const CameraParameters& params) {
     const char *str = params.get("strtextures");
     if(str != NULL) {
-        LOGI("strtextures = %s", str);
+        LOGV("strtextures = %s", str);
         mParameters.set("strtextures", str);
         if(mUseOverlay) {
             if(!strncmp(str, "on", 2) || !strncmp(str, "ON", 2)) {
@@ -6103,7 +6121,7 @@ QualcommCameraHardware::PmemPool::PmemPool(const char *pmem_pool,
     myOffset(yOffset),
     mCameraControlFd(dup(camera_control_fd))
 {
-    LOGV("constructing MemPool %s backed by pmem pool %s: "
+    LOGI("constructing MemPool %s backed by pmem pool %s: "
          "%d frames @ %d bytes, buffer size %d",
          mName,
          pmem_pool, num_buffers, frame_size,
@@ -6191,11 +6209,12 @@ QualcommCameraHardware::PmemPool::PmemPool(const char *pmem_pool,
     }
     else LOGE("pmem pool %s error: could not create master heap!",
               pmem_pool);
+    LOGI("%s: (%s) X ", __FUNCTION__, mName);
 }
 
 QualcommCameraHardware::PmemPool::~PmemPool()
 {
-    LOGV("%s: %s E", __FUNCTION__, mName);
+    LOGI("%s: %s E", __FUNCTION__, mName);
     if (mHeap != NULL) {
         // Unregister preview buffers with the camera drivers.
         //  Only Unregister the preview, snapshot and thumbnail
@@ -6222,7 +6241,7 @@ QualcommCameraHardware::PmemPool::~PmemPool()
          mName,
          mCameraControlFd);
     close(mCameraControlFd);
-    LOGV("%s: %s X", __FUNCTION__, mName);
+    LOGI("%s: %s X", __FUNCTION__, mName);
 }
 
 QualcommCameraHardware::MemPool::~MemPool()

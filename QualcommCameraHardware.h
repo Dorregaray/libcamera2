@@ -50,6 +50,7 @@ typedef struct {
 typedef uint8_t cam_ctrl_type;
 
 #define CEILING16(x) (x&0xfffffff0)
+#define CEILING32(x) (x) /* FIXME */
 typedef struct {
 	//Size: 0x20 bytes = 32 bytes = 16 short
 	unsigned short video_width;//0xe4
@@ -681,8 +682,12 @@ private:
     int mDebugFps;
     int kPreviewBufferCountActual;
     int previewWidth, previewHeight;
-    int videoWidth, videoHeight;
     bool mSnapshotDone;
+    int videoWidth, videoHeight;
+
+    bool mDisEnabled;
+    int mRotation;
+    status_t setVpeParameters();
 };
 
 }; // namespace android

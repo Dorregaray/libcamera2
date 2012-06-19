@@ -281,6 +281,7 @@ enum camera_ops {
 //#define CAMERA_STOP_RECORDING 59
 
 #define CAM_CTRL_SUCCESS 1
+#define CAM_CTRL_INVALID_PARM -1 /* FIXME */
 
 #define PAD_TO_WORD(x) ((x&1) ? x+1 : x)
 #define JPEG_EVENT_DONE 0 /* useless */
@@ -460,6 +461,7 @@ private:
     bool native_set_dimension (int camfd);
     bool native_jpeg_encode (void);
     bool native_set_parm(cam_ctrl_type type, uint16_t length, void *value);
+    bool native_set_parm(cam_ctrl_type type, uint16_t length, void *value, int *result);
     bool native_zoom_image(int fd, int srcOffset, int dstOffset, common_crop_t *crop);
 
     static wp<QualcommCameraHardware> singleton;

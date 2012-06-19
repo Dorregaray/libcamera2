@@ -694,6 +694,7 @@ private:
     int mRotation;
     bool mResetOverlayCrop;
     status_t setVpeParameters();
+    status_t setDIS();
 };
 
 }; // namespace android

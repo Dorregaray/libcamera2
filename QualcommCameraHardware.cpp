@@ -697,8 +697,8 @@ struct SensorType {
 #define EXPOSURE_COMPENSATION_STEP ((float (1))/EXPOSURE_COMPENSATION_DENOMINATOR)
 
 static SensorType sensorTypes[] = {
-        { "12mp", 4096, 3120, false, 4096, 3120,0x00001fff },
         { "12mp_sn12m0pz",4032, 3024, true,  4000, 3000,0x00000fff },
+        { "12mp", 5464, 3120, false, 4000, 3000,0x00001fff },
         { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
         { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff } };
@@ -3877,7 +3877,7 @@ bool QualcommCameraHardware::native_zoom_image(int fd, int srcOffset, int dstOff
     e->transp_mask = 0xffffffff;
     e->flags = 0;
     e->alpha = 0xff;
-    if (crop->in1_w != 0 && crop->in1_h != 0) {
+    if (crop->in1_w != 0 || crop->in1_h != 0) {
         e->src_rect.x = (crop->out1_w - crop->in1_w + 1) / 2 - 1;
         e->src_rect.y = (crop->out1_h - crop->in1_h + 1) / 2 - 1;
         e->src_rect.w = crop->in1_w;
@@ -4036,7 +4036,7 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
         if(mOverlay != NULL) {
             mOverlayLock.lock();
             mOverlay->setFd(mPreviewHeap->mHeap->getHeapID());
-            if (crop->in1_w != 0 && crop->in1_h != 0) {
+            if (crop->in1_w != 0 || crop->in1_h != 0) {
                 zoomCropInfo.x = (crop->out1_w - crop->in1_w + 1) / 2 - 1;
                 zoomCropInfo.y = (crop->out1_h - crop->in1_h + 1) / 2 - 1;
                 zoomCropInfo.w = crop->in1_w;
@@ -4054,7 +4054,7 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
             mOverlayLock.unlock();
         }
     } else {
-        if (crop->in1_w != 0 && crop->in1_h != 0) {
+        if (crop->in1_w != 0 || crop->in1_h != 0) {
             dstOffset = (dstOffset + 1) % NUM_MORE_BUFS;
             offset = kPreviewBufferCount + dstOffset;
             ssize_t dstOffset_addr = offset * mPreviewHeap->mAlignedBufferSize;

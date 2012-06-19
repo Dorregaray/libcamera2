@@ -1193,12 +1193,16 @@ void QualcommCameraHardware::initDefaultParameters()
 {
     LOGI("initDefaultParameters E");
 
+    /* Set the default dimensions otherwise the native_set_parm
+     * called from findSensorType will segfault */
     mDimension.picture_width = DEFAULT_PICTURE_WIDTH;
     mDimension.picture_height = DEFAULT_PICTURE_HEIGHT;
     mDimension.ui_thumbnail_width =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
     mDimension.ui_thumbnail_height =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
+    mDimension.thumbnail_width = mDimension.ui_thumbnail_width;
+    mDimension.thumbnail_height = mDimension.ui_thumbnail_height;
 
     findSensorType();
     //Disable DIS for Web Camera
@@ -1597,11 +1601,13 @@ bool QualcommCameraHardware::startCamera()
     *(void **)&LINK_release_cam_conf_thread =
         ::dlsym(libmmcamera, "release_cam_conf_thread");
 
+    /* TouchPad's liboemcamera does not provide liveshot callback */
+#if 0
     *(void **)&LINK_mmcamera_liveshot_callback =
         ::dlsym(libmmcamera, "mmcamera_liveshot_callback");
 
     *LINK_mmcamera_liveshot_callback = receive_liveshot_callback;
-
+#endif
     *(void **)&LINK_cancel_liveshot =
         ::dlsym(libmmcamera, "cancel_liveshot");
 

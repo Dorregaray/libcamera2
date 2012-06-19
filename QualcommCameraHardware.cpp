@@ -212,11 +212,11 @@ static camera_size_type supportedPreviewSizes[PREVIEW_SIZE_COUNT];
 static unsigned int previewSizeCount;
 
 board_property boardProperties[] = {
-        {TARGET_MSM7625, 0x00000fff, false},
-        {TARGET_MSM7627, 0x000006ff, false},
-        {TARGET_MSM7630, 0x00000fff, true},
-        {TARGET_MSM8660, 0x00001fff, true},
-        {TARGET_QSD8250, 0x00000fff, false}
+        {TARGET_MSM7625, 0x00000fff, false, false},
+        {TARGET_MSM7627, 0x000006ff, false, false},
+        {TARGET_MSM7630, 0x00000fff, true, true},
+        {TARGET_MSM8660, 0x00001fff, true, /*true*/false}, /* TODO: enable when fixed select_zone_af_t */
+        {TARGET_QSD8250, 0x00000fff, false, false}
 };
 
 //static const camera_size_type* picture_sizes;
@@ -684,6 +684,13 @@ static const str_map continuous_af[] = {
     { CameraParameters::CONTINUOUS_AF_ON, TRUE }
 };
 
+static const str_map selectable_zone_af[] = {
+    { CameraParameters::SELECTABLE_ZONE_AF_AUTO,  AUTO },
+    { CameraParameters::SELECTABLE_ZONE_AF_SPOT_METERING, SPOT },
+    { CameraParameters::SELECTABLE_ZONE_AF_CENTER_WEIGHTED, CENTER_WEIGHTED },
+    { CameraParameters::SELECTABLE_ZONE_AF_FRAME_AVERAGE, AVERAGE }
+};
+
 #define DONT_CARE_COORDINATE -1
 static const str_map touchafaec[] = {
     { CameraParameters::TOUCH_AF_AEC_OFF, FALSE },
@@ -758,6 +765,7 @@ static String8 preview_frame_rate_values;
 static String8 frame_rate_mode_values;
 static String8 scenedetect_values;
 static String8 preview_format_values;
+static String8 selectable_zone_af_values;
 
 static String8 create_sizes_str(const camera_size_type *sizes, int len) {
     String8 str;
@@ -1159,6 +1167,18 @@ bool QualcommCameraHardware::supportsSceneDetection() {
    return false;
 }
 
+bool QualcommCameraHardware::supportsSelectableZoneAf() {
+   int prop = 0;
+   for(prop=0; prop<sizeof(boardProperties)/sizeof(board_property); prop++) {
+       if((mCurrentTarget == boardProperties[prop].target)
+          && boardProperties[prop].hasSelectableZoneAf == true) {
+           return true;
+           break;
+       }
+   }
+   return false;
+}
+
 void QualcommCameraHardware::initDefaultParameters()
 {
     LOGI("initDefaultParameters E");
@@ -1250,6 +1270,11 @@ void QualcommCameraHardware::initDefaultParameters()
         if(supportsSceneDetection()) {
             scenedetect_values = create_values_str(
                 scenedetect, sizeof(scenedetect) / sizeof(str_map));
+        }
+
+        if(sensorType->hasAutoFocusSupport && supportsSelectableZoneAf()){
+            selectable_zone_af_values = create_values_str(
+                selectable_zone_af, sizeof(selectable_zone_af) / sizeof(str_map));
         }
 
         parameter_string_initialized = true;
@@ -1430,11 +1455,13 @@ void QualcommCameraHardware::initDefaultParameters()
                     CAMERA_HORIZONTAL_VIEW_ANGLE_DEFAULT);
     mParameters.setFloat(CameraParameters::KEY_VERTICAL_VIEW_ANGLE,
                     CAMERA_VERTICAL_VIEW_ANGLE_DEFAULT);
-
+    mParameters.set(CameraParameters::KEY_SELECTABLE_ZONE_AF,
+                    CameraParameters::SELECTABLE_ZONE_AF_AUTO);
+    mParameters.set(CameraParameters::KEY_SUPPORTED_SELECTABLE_ZONE_AF,
+                    selectable_zone_af_values);
     if (setParameters(mParameters) != NO_ERROR) {
         LOGE("Failed to set default parameters?!");
     }
-
     mUseOverlay = useOverlay();
 
     /* Initialize the camframe_timeout_flag*/
@@ -3923,6 +3950,8 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if (final_rc) LOGV("setSaturation failed");
     if ((rc = setContinuousAf(params)))  final_rc = rc;
     if (final_rc) LOGV("setContinuousAf failed");
+    if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
+    if (final_rc) LOGV("setSelectableZoneAf failed");
     if ((rc = setTouchAfAec(params)))   final_rc = rc;
     if (final_rc) LOGV("setTouchAfAec failed");
     if ((rc = setSceneMode(params)))  final_rc = rc;
@@ -5573,6 +5602,25 @@ status_t QualcommCameraHardware::setContinuousAf(const CameraParameters& params)
         return BAD_VALUE;
     }
 #endif
+    return NO_ERROR;
+}
+
+status_t QualcommCameraHardware::setSelectableZoneAf(const CameraParameters& params)
+{
+    if(sensorType->hasAutoFocusSupport && supportsSelectableZoneAf()) {
+        const char *str = params.get(CameraParameters::KEY_SELECTABLE_ZONE_AF);
+        if (str != NULL) {
+            int32_t value = attr_lookup(selectable_zone_af, sizeof(selectable_zone_af) / sizeof(str_map), str);
+            if (value != NOT_FOUND) {
+                mParameters.set(CameraParameters::KEY_SELECTABLE_ZONE_AF, str);
+                bool ret = native_set_parm(CAMERA_SET_PARM_FOCUS_RECT, sizeof(value),
+                        (void *)&value);
+                return ret ? NO_ERROR : UNKNOWN_ERROR;
+            }
+        }
+        LOGE("Invalid selectable zone af value: %s", (str == NULL) ? "NULL" : str);
+        return BAD_VALUE;
+    }
     return NO_ERROR;
 }
 

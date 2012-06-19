@@ -347,6 +347,13 @@ typedef struct {
 	exif_tag_entry_t tag_entry;
 } exif_tags_info_t;
 
+/*  FIXME: need real values */
+enum {
+      CAMERA_YUV_420_NV12,
+      CAMERA_YUV_420_NV21,
+      CAMERA_YUV_420_NV21_ADRENO
+};
+
 // End of closed stuff
 
 struct str_map {
@@ -605,7 +612,8 @@ private:
     status_t setContinuousAf(const CameraParameters& params);
     status_t setTouchAfAec(const CameraParameters& params);
     status_t setSceneDetect(const CameraParameters& params);
-
+    status_t setStrTextures(const CameraParameters& params);
+    status_t setPreviewFormat(const CameraParameters& params);
     void setGpsParameters();
     void storePreviewFrameForPostview();
     bool isValidDimension(int w, int h);

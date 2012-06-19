@@ -5677,11 +5677,11 @@ status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
 }
 
 status_t  QualcommCameraHardware::setISOValue(const CameraParameters& params) {
-    if(!strcmp(sensorType->name, "2mp")) {
+    int8_t temp_hjr;
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Parameter ISO Value is not supported for this sensor");
         return NO_ERROR;
     }
-    int8_t temp_hjr;
     const char *str = params.get(CameraParameters::KEY_ISO_MODE);
     if (str != NULL) {
         int value = (camera_iso_mode_type)attr_lookup(

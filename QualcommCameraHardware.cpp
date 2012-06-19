@@ -215,7 +215,7 @@ board_property boardProperties[] = {
         {TARGET_MSM7625, 0x00000fff, false},
         {TARGET_MSM7627, 0x000006ff, false},
         {TARGET_MSM7630, 0x00000fff, true},
-        {TARGET_MSM8660, 0x00000fff, true},
+        {TARGET_MSM8660, 0x00001fff, true},
         {TARGET_QSD8250, 0x00000fff, true}
 };
 

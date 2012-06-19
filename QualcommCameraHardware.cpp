@@ -2438,7 +2438,6 @@ bool QualcommCameraHardware::native_set_parm(
     LOGV("%s: fd %d, type %d, length %d", __FUNCTION__,
          mCameraControlFd, type, length);
 
-    /* FIXME: ugly temporary workaround for segfault */
     if (type == 1) {
       cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
       LOGV("cam_ctrl_dimension_t dump:");
@@ -2556,7 +2555,7 @@ void QualcommCameraHardware::runFrameThread(void *data)
     if (libhandle)
 #endif
     {
-        LOGV("before LINK_cam_frame");
+        LOGV("before LINK_cam_frame, data: %p\n", data);
         LINK_cam_frame(data);
         LOGV("after LINK_cam_frame");
     }
@@ -2910,9 +2909,9 @@ bool QualcommCameraHardware::initPreview()
         else
             frame_parms.video_frame =  frames[kPreviewBufferCount - 1];
 
-        LOGV ("initpreview before cam_frame thread carete , video frame  buffer=%lu fd=%d y_off=%d cbcr_off=%d \n",
+        LOGV ("initpreview before cam_frame thread carete , video frame  buffer=%lu fd=%d y_off=%d cbcr_off=%d frame_parms=%p\n",
           (unsigned long)frame_parms.video_frame.buffer, frame_parms.video_frame.fd, frame_parms.video_frame.y_off,
-          frame_parms.video_frame.cbcr_off);
+          frame_parms.video_frame.cbcr_off, frame_parms);
         mFrameThreadRunning = !pthread_create(&mFrameThread,
                                               &attr,
                                               frame_thread,

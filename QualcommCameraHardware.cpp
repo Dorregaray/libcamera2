@@ -77,8 +77,8 @@ typedef int liveshot_status;
 
 #define DUMP_LIVESHOT_JPEG_FILE 0
 
-#define DEFAULT_PICTURE_WIDTH  1024
-#define DEFAULT_PICTURE_HEIGHT 768
+#define DEFAULT_PICTURE_WIDTH  640
+#define DEFAULT_PICTURE_HEIGHT 480
 #define THUMBNAIL_BUFFER_SIZE (THUMBNAIL_WIDTH * THUMBNAIL_HEIGHT * 3/2)
 #define MAX_ZOOM_LEVEL 5
 #define NOT_FOUND -1
@@ -723,7 +723,8 @@ static SensorType sensorTypes[] = {
         { "12mp_sn12m0pz",4032, 3024, true,  4000, 3000,0x00000fff },
         { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
-        { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff } };
+        { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff },
+        { "ov7692", 640, 480, false, 640, 480, 0x000000ff } }; //Web Camera
 
 
 static SensorType * sensorType;
@@ -1191,6 +1192,9 @@ void QualcommCameraHardware::initDefaultParameters()
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
 
     findSensorType();
+    //Disable DIS for Web Camera
+    if(!strcmp(sensorType->name, "ov7692"))
+        mDisEnabled = 0;
     // Initialize constant parameter strings. This will happen only once in the
     // lifetime of the mediaserver process.
     if (!parameter_string_initialized) {
@@ -1285,7 +1289,8 @@ void QualcommCameraHardware::initDefaultParameters()
     mDimension.display_height = DEFAULT_PREVIEW_HEIGHT;
 
     mParameters.setPreviewFrameRate(DEFAULT_FPS);
-    if(strcmp(sensorType->name, "2mp")){
+    if((strcmp(sensorType->name, "2mp")) &&
+       (strcmp(sensorType->name, "ov7692"))){
       mParameters.set(
             CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATES,
             preview_frame_rate_values.string());
@@ -1350,7 +1355,8 @@ void QualcommCameraHardware::initDefaultParameters()
 
     frame_rate_mode_values = create_values_str(
             frame_rate_modes, sizeof(frame_rate_modes) / sizeof(str_map));
-    if(strcmp(sensorType->name, "2mp")){
+    if((strcmp(sensorType->name, "2mp")) &&
+       (strcmp(sensorType->name, "ov7692"))){
         mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATE_MODES,
                     frame_rate_mode_values.string());
     }
@@ -5148,7 +5154,8 @@ status_t QualcommCameraHardware::setPreviewSize(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setPreviewFrameRate(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")){
+    if((!strcmp(sensorType->name, "2mp")) ||
+        (!strcmp(sensorType->name, "ov7692"))){
         LOGI("set fps is not supported for this sensor");
         return NO_ERROR;
     }
@@ -5172,7 +5179,8 @@ status_t QualcommCameraHardware::setPreviewFrameRate(const CameraParameters& par
 }
 
 status_t QualcommCameraHardware::setPreviewFrameRateMode(const CameraParameters& params) {
-    if(!strcmp(sensorType->name, "2mp")){
+     if((!strcmp(sensorType->name, "2mp")) ||
+        (!strcmp(sensorType->name, "ov7692"))){
         LOGI("set fps is not supported for this sensor");
         return NO_ERROR;
     }
@@ -5281,7 +5289,7 @@ status_t QualcommCameraHardware::setEffect(const CameraParameters& params)
     if (str != NULL) {
         int32_t value = attr_lookup(effects, sizeof(effects) / sizeof(str_map), str);
         if (value != NOT_FOUND) {
-            if(!strcmp(sensorType->name, "2mp") && (value != CAMERA_EFFECT_OFF)
+            if((!strcmp(sensorType->name, "2mp") || !strcmp(sensorType->name, "ov7692")) && (value != CAMERA_EFFECT_OFF)
                &&(value != CAMERA_EFFECT_MONO) && (value != CAMERA_EFFECT_NEGATIVE)
                &&(value != CAMERA_EFFECT_SOLARIZE) && (value != CAMERA_EFFECT_SEPIA)) {
                 LOGE("Special effect parameter is not supported for this sensor");
@@ -5310,7 +5318,7 @@ status_t QualcommCameraHardware::setEffect(const CameraParameters& params)
 status_t QualcommCameraHardware::setExposureCompensation(
         const CameraParameters & params){
 
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Exposure Compensation is not supported for this sensor");
         return NO_ERROR;
     }
@@ -5333,7 +5341,7 @@ status_t QualcommCameraHardware::setExposureCompensation(
 
 status_t QualcommCameraHardware::setAutoExposure(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Auto Exposure not supported for this sensor");
         return NO_ERROR;
     }
@@ -5353,7 +5361,7 @@ status_t QualcommCameraHardware::setAutoExposure(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setSharpness(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Sharpness not supported for this sensor");
         return NO_ERROR;
     }
@@ -5371,7 +5379,7 @@ status_t QualcommCameraHardware::setSharpness(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setContrast(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Contrast not supported for this sensor");
         return NO_ERROR;
     }
@@ -5398,7 +5406,7 @@ status_t QualcommCameraHardware::setContrast(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setSaturation(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Saturation not supported for this sensor");
         return NO_ERROR;
     }
@@ -5524,7 +5532,7 @@ status_t QualcommCameraHardware::setFlash(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setAntibanding(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGE("Parameter AntiBanding is not supported for this sensor");
         return NO_ERROR;
     }
@@ -5554,6 +5562,7 @@ status_t QualcommCameraHardware::setAntibanding(const CameraParameters& params)
 status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& params)
 {
     if( (!strcmp(sensorType->name, "2mp")) ||
+        (!strcmp(sensorType->name, "ov7692")) ||
         (!strcmp(sensorType->name, "12mp")) ||
         (!strcmp(mSensorInfo.name, "vx6953")) ||
 	(!strcmp(mSensorInfo.name, "VX6953")) ) {
@@ -5725,7 +5734,7 @@ status_t QualcommCameraHardware::setSceneDetect(const CameraParameters& params)
 
     bool retParm1, retParm2;
     if (supportsSceneDetection()) {
-        if(!strcmp(sensorType->name, "2mp")) {
+        if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
             LOGI("Parameter Auto Scene Detection is not supported for this sensor");
             return NO_ERROR;
         }
@@ -5761,7 +5770,7 @@ status_t QualcommCameraHardware::setSceneDetect(const CameraParameters& params)
 
 status_t QualcommCameraHardware::setSceneMode(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
         LOGI("Parameter Scenemode not supported for this sensor");
         return NO_ERROR;
     }

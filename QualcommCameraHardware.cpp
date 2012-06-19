@@ -229,6 +229,8 @@ board_property boardProperties[] = {
  */
 //sorted on column basis
 static const camera_size_type picture_sizes[] = {
+    { 4000, 3000 }, // 12MP
+    { 3200, 2400 }, // 8MP
     { 2592, 1944 }, // 5MP
     { 2048, 1536 }, // 3MP QXGA
     { 1920, 1080 }, //HD1080
@@ -696,6 +698,7 @@ struct SensorType {
 
 static SensorType sensorTypes[] = {
         { "12mp", 4096, 3120, false, 4096, 3120,0x00001fff },
+        { "12mp_sn12m0pz",4032, 3024, true,  4000, 3000,0x00000fff },
         { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
         { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff } };
@@ -1420,7 +1423,7 @@ void QualcommCameraHardware::findSensorType(){
     LOGV("sensorType NOT found");
 
     //default to 2 mp
-    sensorType = sensorTypes + 3;
+    sensorType = sensorTypes + 4;
     return;
 }
 

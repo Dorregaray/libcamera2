@@ -693,6 +693,7 @@ private:
     bool mDisEnabled;
     int mRotation;
     bool mResetOverlayCrop;
+    int mThumbnailWidth, mThumbnailHeight;
     status_t setVpeParameters();
     status_t setDIS();
 };

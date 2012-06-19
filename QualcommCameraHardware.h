@@ -540,7 +540,7 @@ private:
     sp<AshmemPool> mJpegHeap;
     sp<PmemPool> mRawSnapShotPmemHeap;
     sp<AshmemPool> mRawSnapshotAshmemHeap;
-
+    sp<PmemPool> mPostViewHeap;
 
     bool startCamera();
     bool initPreview();
@@ -590,6 +590,7 @@ private:
     void debugShowVideoFPS() const;
 
     int mSnapshotFormat;
+    bool mFirstFrame;
     void filterPictureSizes();
     void filterPreviewSizes();
     void storeTargetType();
@@ -633,6 +634,7 @@ private:
     status_t setPreviewFormat(const CameraParameters& params);
     status_t setSelectableZoneAf(const CameraParameters& params);
     void setGpsParameters();
+    bool storePreviewFrameForPostview();
     bool isValidDimension(int w, int h);
 
     Mutex mLock;

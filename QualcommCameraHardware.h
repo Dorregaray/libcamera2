@@ -572,6 +572,9 @@ private:
     bool mInSnapshotMode;
     Mutex mInSnapshotModeWaitLock;
     Condition mInSnapshotModeWait;
+    bool mEncodePending;
+    Mutex mEncodePendingWaitLock;
+    Condition mEncodePendingWait;
 
     void debugShowPreviewFPS() const;
     void debugShowVideoFPS() const;
@@ -642,6 +645,7 @@ private:
     unsigned int        mPreviewFrameSize;
     unsigned int        mRecordFrameSize;
     int                 mRawSize;
+    int                 mCbCrOffsetRaw;
     int                 mJpegMaxSize;
 
 #if DLOPEN_LIBMMCAMERA

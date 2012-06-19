@@ -615,6 +615,7 @@ private:
     status_t setZoom(const CameraParameters& params);
     status_t setFocusMode(const CameraParameters& params);
     status_t setBrightness(const CameraParameters& params);
+    status_t setSkinToneEnhancement(const CameraParameters& params);
     status_t setOrientation(const CameraParameters& params);
     status_t setLensshadeValue(const CameraParameters& params);
     status_t setISOValue(const CameraParameters& params);
@@ -680,6 +681,7 @@ private:
     bool mInitialized;
 
     int mBrightness;
+    int mSkinToneEnhancement;
     int mHJR;
     struct msm_frame frames[kPreviewBufferCount];
     struct msm_frame *recordframes;

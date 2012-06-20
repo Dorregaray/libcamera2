@@ -36,15 +36,15 @@ extern "C" {
 #define FALSE 0
 
 typedef struct {
-	unsigned int in1_w;
-	unsigned int in1_h;
-	unsigned int out1_w;
-	unsigned int out1_h;
-	unsigned int in2_w;
-	unsigned int in2_h;
-	unsigned int out2_w;
-	unsigned int out2_h;
-	uint8_t update_flag; 
+    unsigned int in1_h;
+    unsigned int out1_h;
+    unsigned int in1_w;
+    unsigned int out1_w;
+    unsigned int in2_h;
+    unsigned int out2_w;
+    unsigned int in2_w;
+    unsigned int out2_h;
+    uint8_t update_flag; 
 } common_crop_t;
 
 typedef uint8_t cam_ctrl_type;
@@ -77,6 +77,7 @@ typedef struct {
 	double   longitude;  /* degrees                */
 	int16_t  altitude;   /* meters                          */
 } camera_position_type;
+
 typedef uint8_t jpeg_event_t;
 
 typedef enum {
@@ -122,9 +123,9 @@ typedef enum {
 
 //From now on ... Total guesses ! no RE available afaik.
 typedef enum {
-	AF_MODE_NORMAL,
-	AF_MODE_MACRO,
-	AF_MODE_AUTO,
+	AF_MODE_NORMAL=0,
+	AF_MODE_MACRO=1,
+	AF_MODE_AUTO=2,
 } isp3a_af_mode_t;
 
 enum {
@@ -204,84 +205,87 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_DEF_CONTRAST 8
 #define CAMERA_DEF_SATURATION 6
 
-enum camera_ops {
-    CAMERA_SET_PARM_ENCODE_ROTATION=0,
-    CAMERA_SET_PARM_DIMENSION=1,
-    CAMERA_SET_PARM_ZOOM=2,
-    CAMERA_SET_PARM_SENSOR_POSITION,
-    CAMERA_SET_PARM_SHARPNESS=4, /* 9? */
-    CAMERA_SET_PARM_LUMA_ADAPTATION,
-    CAMERA_SET_PARM_CONTRAST=6,
-    CAMERA_SET_PARM_BRIGHTNESS=7,
-    CAMERA_SET_PARM_EXPOSURE_COMPENSATION,
-    CAMERA_SET_PARM_FOCUS_RECT,
-    CAMERA_SET_PARM_HUE=10,
-    CAMERA_SET_PARM_SATURATION=11,
-    CAMERA_SET_PARM_EXPOSURE=12,
-    CAMERA_SET_PARM_AUTO_FOCUS=13,
-    CAMERA_SET_PARM_WB=14,
-    CAMERA_SET_PARM_EFFECT=15,
-    CAMERA_SET_PARM_FPS,
-    CAMERA_SET_PARM_FLASH,
-    CAMERA_SET_PARM_NIGHTSHOT_MODE,
-    CAMERA_SET_PARM_REFLECT,
-    CAMERA_SET_PARM_PREVIEW_MODE=20,
-    CAMERA_SET_PARM_ANTIBANDING=21,
-    CAMERA_SET_PARM_RED_EYE_REDUCTION,
-    CAMERA_SET_PARM_FOCUS_STEP,
-    CAMERA_SET_PARM_EXPOSURE_METERING,
-    CAMERA_SET_PARM_AUTO_EXPOSURE_MODE,
-    CAMERA_SET_PARM_ISO=26,
-    CAMERA_SET_PARM_BESTSHOT_MODE,
-    CAMERA_SET_PARM_PREVIEW_FPS,
-    CAMERA_SET_PARM_AF_MODE=30,
-    CAMERA_SET_PARM_HISTOGRAM,
-    CAMERA_SET_PARM_FLASH_STATE,
-    CAMERA_SET_PARM_FRAME_TIMESTAMP,
-    CAMERA_SET_PARM_STROBE_FLASH,
-    CAMERA_SET_PARM_FPS_LIST,
-    CAMERA_SET_PARM_HJR=36,
-    CAMERA_SET_PARM_ROLLOFF=37,
-    CAMERA_STOP_PREVIEW=38,
-    CAMERA_START_PREVIEW=39,
-    CAMERA_START_SNAPSHOT=40,
-    CAMERA_START_VIDEO,
-    CAMERA_STOP_SNAPSHOT=42,
-    CAMERA_EXIT=43,
-    CAMERA_STOP_VIDEO,
-    CAMERA_START_RECORDING,
-    CAMERA_STOP_RECORDING,
-    CAMERA_GET_PARM_MAXZOOM=47,
-    CAMERA_GET_PARM_ZOOMRATIOS,
-    CAMERA_START_RAW_SNAPSHOT,
-    CAMERA_SET_PARM_LED_MODE=49,
-    CAMERA_GET_PARM_AF_SHARPNESS,
-    CAMERA_SET_MOTION_ISO,
-    CAMERA_AUTO_FOCUS_CANCEL,
-    CAMERA_GET_PARM_FOCUS_STEP,
-    CAMERA_ENABLE_AFD,
-    CAMERA_PREPARE_SNAPSHOT=55,
-    CAMERA_SET_FPS_MODE,
-    CAMERA_SET_PARM_SCENE_MODE,
-    CAMERA_SET_PARM_AEC_ROI=61, /* CHECKME */
-    CAMERA_SET_CAF=62, /* CHECKME */
-    CAMERA_SET_PARM_BL_DETECTION_ENABLE,
-    CAMERA_SET_PARM_SNOW_DETECTION_ENABLE,
-    CAMERA_SET_PARM_AF_ROI=65, /* CHECKME */
-    CAMERA_START_LIVESHOT = 99 /* FIXME */
-};
+/* TAG JB 01/20/2010 : From the disassembly of both drem/sapphire + legend camera libraries */
+#define CAMERA_SET_PARM_DIMENSION           1
+#define CAMERA_SET_PARM_ZOOM                2
+#define CAMERA_SET_PARM_SENSOR_POSITION     3   // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_FOCUS_RECT          4   // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_LUMA_ADAPTATION     5   // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_CONTRAST            6
+#define CAMERA_SET_PARM_BRIGHTNESS          7
+#define CAMERA_SET_PARM_EXPOSURE_COMPENSATION   8   // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_SHARPNESS           9   // (4) from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_HUE                 10  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_SATURATION          11
+#define CAMERA_SET_PARM_EXPOSURE            12
+#define CAMERA_SET_PARM_AUTO_FOCUS          13
+#define CAMERA_SET_PARM_WB                  14
+#define CAMERA_SET_PARM_EFFECT              15
+#define CAMERA_SET_PARM_FPS                 16  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_FLASH               17  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_NIGHTSHOT_MODE      18  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_REFLECT             19  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_PREVIEW_MODE        20  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_ANTIBANDING         21
+#define CAMERA_SET_PARM_RED_EYE_REDUCTION   22  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_FOCUS_STEP          23  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_EXPOSURE_METERING   24  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_AUTO_EXPOSURE_MODE  25  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_ISO                 26
+#define CAMERA_SET_PARM_BESTSHOT_MODE       27  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_PREVIEW_FPS         29  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_AF_MODE             30  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_HISTOGRAM           31  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_FLASH_STATE         32  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_FRAME_TIMESTAMP     33  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_STROBE_FLASH        34  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_FPS_LIST            35  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_HJR                 36
+#define CAMERA_SET_PARM_ROLLOFF             37
+#define CAMERA_STOP_PREVIEW                 38
+#define CAMERA_START_PREVIEW                39
+#define CAMERA_START_SNAPSHOT               40
+#define CAMERA_START_RAW_SNAPSHOT           41
+#define CAMERA_STOP_SNAPSHOT                42
+#define CAMERA_EXIT                         43
+#define CAMERA_GET_PARM_ZOOM                46  // from liboemcamera.so (307Kb version) disassembly
+#define CAMERA_GET_PARM_MAXZOOM             47
+#define CAMERA_GET_PARM_AF_SHARPNESS        48  // from liboemcamera.so disassembly
+#define CAMERA_SET_PARM_LED_MODE            49
+#define CAMERA_SET_MOTION_ISO               50  // from liboemcamera.so disassembly
+#define CAMERA_AUTO_FOCUS_CANCEL            51  // (38) from liboemcamera.so disassembly
+#define CAMERA_GET_PARM_FOCUS_STEP          52  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_ENABLE_AFD                   53  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_PREPARE_SNAPSHOT             54
+#define CAMERA_SET_PARM_COORDINATE          55  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_SET_AWB_CALIBRATION          56  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_SET_PARM_LA_MODE             57  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_SET_PARM_AE_COORDINATE       58  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_GET_PARM_FOCAL_LENGTH        59  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_GET_PARM_HORIZONTAL_VIEW_ANGLE 60  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_GET_PARM_VERTICAL_VIEW_ANGLE 61  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_GET_PARM_ISO                 62
+#define CAMERA_SET_PARM_FRONT_CAMERA_MODE   63  // from liboemcamera.so (1535Kb version) disassembly
 
-//#define CAMERA_ENABLE_AFD 21 //Bah can't find the real value
-//#define CAMERA_AUTO_FOCUS_CANCEL 38
-//#define CAMERA_START_RAW_SNAPSHOT 41
-//#define CAMERA_PREPARE_SNAPSHOT 54
-//#define CAMERA_START_VIDEO 56
-//#define CAMERA_STOP_VIDEO 57
-//#define CAMERA_START_RECORDING 58
-//#define CAMERA_STOP_RECORDING 59
+#define CAMERA_START_VIDEO                  56
+#define CAMERA_STOP_VIDEO                   57
+#define CAMERA_START_RECORDING              58
+#define CAMERA_STOP_RECORDING               59
+/* End of TAG */
+
+#define CAMERA_GET_PARM_ZOOMRATIOS            0  /* FIXME */
+#define CAMERA_SET_FPS_MODE                   55 /* FIXME */
+#define CAMERA_SET_PARM_SCENE_MODE            0  /* FIXME */
+#define CAMERA_SET_PARM_AEC_ROI               61 /* CHECKME */
+#define CAMERA_SET_CAF                        62 /* CHECKME */
+#define CAMERA_SET_PARM_BL_DETECTION_ENABLE   63 /* CHECKME */
+#define CAMERA_SET_PARM_SNOW_DETECTION_ENABLE 64 /* CHECKME */
+#define CAMERA_SET_PARM_AF_ROI                65 /* CHECKME */
+#define CAMERA_START_LIVESHOT                 0  /* FIXME */
+
 
 #define CAM_CTRL_SUCCESS 1
-#define CAM_CTRL_INVALID_PARM -1 /* FIXME */
+#define CAM_CTRL_INVALID_PARM 2 /* FIXME */
 
 #define PAD_TO_WORD(x) ((x&1) ? x+1 : x)
 #define JPEG_EVENT_DONE 0 /* useless */
@@ -334,6 +338,7 @@ enum {
 #define EXIF_ASCII 2
 #define EXIF_BYTE 1
 typedef unsigned int exif_tag_type_t;
+
 typedef struct {
 	//24 bytes = 6 ints
 	exif_tag_type_t type;

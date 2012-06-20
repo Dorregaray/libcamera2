@@ -216,7 +216,7 @@ board_property boardProperties[] = {
         {TARGET_MSM7625, 0x00000fff, false, false},
         {TARGET_MSM7627, 0x000006ff, false, false},
         {TARGET_MSM7630, 0x00000fff, true, true},
-        {TARGET_MSM8660, 0x00001fff, true, /*true*/false}, /* TODO: enable when fixed select_zone_af_t */
+        {TARGET_MSM8660, 0x00001fff, true, true},
         {TARGET_QSD8250, 0x00000fff, false, false}
 };
 
@@ -1746,6 +1746,7 @@ static bool native_get_maxzoom(int camfd, void *pZm)
 static bool native_get_zoomratios(int camfd, void *pZr, int maxZoomSize)
 {
     LOGV("native_get_zoomratios E");
+#if 0
     struct msm_ctrl_cmd ctrlCmd;
     int16_t *zoomRatios = (int16_t *)pZr;
 
@@ -1762,10 +1763,13 @@ static bool native_get_zoomratios(int camfd, void *pZr, int maxZoomSize)
         LOGE("native_get_zoomratios: ioctl fd %d error %s",
              camfd,
              strerror(errno));
+#endif
         return false;
+#if 0
     }
     LOGV("native_get_zoomratios X");
     return true;
+#endif
 }
 
 static bool native_set_afmode(int camfd, isp3a_af_mode_t af_type)
@@ -1925,6 +1929,7 @@ static bool native_start_snapshot(int camfd)
 
 static bool native_start_liveshot(int camfd)
 {
+#if 0
     int ret;
     struct msm_ctrl_cmd ctrlCmd;
     ctrlCmd.timeout_ms = 5000;
@@ -1934,9 +1939,12 @@ static bool native_start_liveshot(int camfd)
     ctrlCmd.resp_fd = camfd;
     if ((ret = ioctl(camfd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd)) < 0) {
         LOGE("native_start_liveshot: ioctl failed. ioctl return value is %d ", ret);
+#endif
         return false;
+#if 0
     }
     return true;
+#endif
 }
 
 static bool native_start_raw_snapshot(int camfd)
@@ -2911,7 +2919,7 @@ bool QualcommCameraHardware::initPreview()
 
         LOGV ("initpreview before cam_frame thread carete , video frame  buffer=%lu fd=%d y_off=%d cbcr_off=%d frame_parms=%p\n",
           (unsigned long)frame_parms.video_frame.buffer, frame_parms.video_frame.fd, frame_parms.video_frame.y_off,
-          frame_parms.video_frame.cbcr_off, frame_parms);
+          frame_parms.video_frame.cbcr_off, &frame_parms);
         mFrameThreadRunning = !pthread_create(&mFrameThread,
                                               &attr,
                                               frame_thread,
@@ -5684,9 +5692,6 @@ status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& param
 
 status_t QualcommCameraHardware::setContinuousAf(const CameraParameters& params)
 {
-    /* Not sure if the CAMERA_SET_CAF has correct value */
-    LOGI("setContinuousAf is disabled for now");
-#if 0
     if(sensorType->hasAutoFocusSupport){
         const char *str = params.get(CameraParameters::KEY_CONTINUOUS_AF);
         if (str != NULL) {
@@ -5702,7 +5707,6 @@ status_t QualcommCameraHardware::setContinuousAf(const CameraParameters& params)
         LOGE("Invalid continuous Af value: %s", (str == NULL) ? "NULL" : str);
         return BAD_VALUE;
     }
-#endif
     return NO_ERROR;
 }
 
@@ -5727,9 +5731,7 @@ status_t QualcommCameraHardware::setSelectableZoneAf(const CameraParameters& par
 
 status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
 {
-    /* Not sure if the CAMERA_SET_PARM_AEC_ROI and CAMERA_SET_PARM_AF_ROI 
-     * have the correct values, no cam_set_aec_roi_t definition */
-    LOGI("setTouchAfAec is disabled for now");
+    /* Don't know the AEC_ROI_* values */
 #if 0
     if(sensorType->hasAutoFocusSupport){
         int xAec, yAec, xAf, yAf;

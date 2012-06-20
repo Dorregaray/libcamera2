@@ -610,6 +610,19 @@ static const str_map scenedetect[] = {
     { CameraParameters::SCENE_DETECT_ON, TRUE },
 };
 
+static void dump_dimensions(cam_ctrl_dimension_t *t)
+{
+    LOGV("cam_ctrl_dimension_t dump:");
+    LOGV("video_width: %d, video_height: %d, picture_width: %d, picture_height: %d, "
+         "display_width: %d, display_height: %d, orig_picture_dx: %d, orig_picture_dy: %d, "
+         "ui_thumbnail_width: %d, ui_thumbnail_height:%d, thumbnail_width: %d, thumbnail_height: %d, "
+         "raw_picture_height: %d, raw_picture_width: %d, filler7: %d, filler8: %d",
+         t->video_width, t->video_height, t->picture_width, t->picture_height,
+         t->display_width, t->display_height, t->orig_picture_dx, t->orig_picture_dy,
+         t->ui_thumbnail_width, t->ui_thumbnail_height, t->thumbnail_width, t->thumbnail_height,
+         t->raw_picture_height, t->raw_picture_width, t->filler7, t->filler8);
+}
+
 #define country_number (sizeof(country_numeric) / sizeof(country_map))
 /* TODO : setting dummy values as of now, need to query for correct
  * values from sensor in future
@@ -2447,16 +2460,8 @@ bool QualcommCameraHardware::native_set_parm(
          mCameraControlFd, type, length);
 
     if (type == 1) {
-      cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
-      LOGV("cam_ctrl_dimension_t dump:");
-      LOGV("video_width: %d, video_height: %d, picture_width: %d, picture_height: %d, "
-         "display_width: %d, display_height: %d, orig_picture_dx: %d, orig_picture_dy: %d, "
-         "ui_thumbnail_width: %d, ui_thumbnail_height:%d, thumbnail_width: %d, thumbnail_height: %d, "
-         "raw_picture_height: %d, raw_picture_width: %d, filler7: %d, filler8: %d",
-         t->video_width, t->video_height, t->picture_width, t->picture_height,
-         t->display_width, t->display_height, t->orig_picture_dx, t->orig_picture_dy,
-         t->ui_thumbnail_width, t->ui_thumbnail_height, t->thumbnail_width, t->thumbnail_height,
-         t->raw_picture_height, t->raw_picture_width, t->filler7, t->filler8);
+        cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
+        dump_dimensions(t);
     }
 
     if (ioctl(mCameraControlFd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd) < 0 ||
@@ -2879,17 +2884,29 @@ bool QualcommCameraHardware::initPreview()
 
     //Pass the original video width and height and get the required width
     //and height for record buffer allocation
-#if 0
-    mDimension.orig_video_width = videoWidth;
-    mDimension.orig_video_height = videoHeight;
-#endif
+
+    unsigned short orig_video_width = videoWidth;
+    unsigned short orig_video_height = videoHeight;
+    cam_ctrl_dimension_t *t = &mDimension;
+
+    dump_dimensions(&mDimension);
+
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
                                sizeof(cam_ctrl_dimension_t), &mDimension);
 
+    dump_dimensions(&mDimension);
+
     if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
+
+        if (mDimension.video_width == 0 || mDimension.video_height == 0)
+        {
+            LOGE("video dimensions are wrong: %d x %d. restore", mDimension.video_width, mDimension.video_height);
+            mDimension.video_width = orig_video_width;
+            mDimension.video_height = orig_video_height;
+        }
 
         // Allocate video buffers after allocating preview buffers.
         initRecord();
@@ -4493,6 +4510,12 @@ bool QualcommCameraHardware::initRecord()
         }
     }
     LOGV("mRecordFrameSize = %d", mRecordFrameSize);
+
+    if (mRecordFrameSize <= 0)
+    {
+        LOGE("initRecord X: wrong record frame size.");
+        return false;
+    }
 
     mRecordHeap = new PmemPool(pmem_region,
                                MemoryHeapBase::READ_ONLY | MemoryHeapBase::NO_CACHING,

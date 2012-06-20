@@ -3415,7 +3415,9 @@ status_t QualcommCameraHardware::startPreviewInternal()
     if(!mCameraRunning) {
         deinitPreview();
         mPreviewInitialized = false;
+	mOverlayLock.lock();
         mOverlay = NULL;
+	mOverlayLock.unlock();
         LOGE("startPreview X: native_start_preview failed!");
         return UNKNOWN_ERROR;
     }
@@ -5069,6 +5071,7 @@ void QualcommCameraHardware::receiveRawPicture()
         }
 
         if( mUseOverlay && (mOverlay != NULL) ) {
+            mOverlayLock.lock();
             mOverlay->setFd(mDisplayHeap->mHeap->getHeapID());
             int cropX = 0;
             int cropY = 0;
@@ -5089,6 +5092,7 @@ void QualcommCameraHardware::receiveRawPicture()
             }
             LOGV(" Queueing Postview for display ");
             mOverlay->queueBuffer((void *)0);
+            mOverlayLock.unlock();
         }
         if (mDataCallback && (mMsgEnabled & CAMERA_MSG_RAW_IMAGE))
             mDataCallback(CAMERA_MSG_RAW_IMAGE, mDisplayHeap->mBuffers[0],
@@ -6437,7 +6441,9 @@ status_t QualcommCameraHardware::setOverlay(const sp<Overlay> &Overlay)
         mOverlayLock.unlock();
     } else {
         LOGV(" Overlay object NULL. returning ");
+        mOverlayLock.lock();
         mOverlay = NULL;
+        mOverlayLock.unlock();
         return UNKNOWN_ERROR;
     }
     return NO_ERROR;
@@ -6495,14 +6501,16 @@ bool QualcommCameraHardware::storePreviewFrameForPostview(void) {
                (uint8_t *)mLastQueuedFrame, mPreviewFrameSize );
 
         if( mUseOverlay && (mOverlay != NULL)){
+             mOverlayLock.lock();
              mOverlay->setFd(mPostViewHeap->mHeap->getHeapID());
              if( zoomCropInfo.w !=0 && zoomCropInfo.h !=0) {
                  LOGD("zoomCropInfo non-zero, setting crop ");
                  mOverlay->setCrop(zoomCropInfo.x, zoomCropInfo.y,
                                zoomCropInfo.w, zoomCropInfo.h);
-              }
-            LOGV("Queueing Postview with last frame till the snapshot is done ");
-            mOverlay->queueBuffer((void *)0);
+             }
+             LOGV("Queueing Postview with last frame till the snapshot is done ");
+             mOverlay->queueBuffer((void *)0);
+             mOverlayLock.unlock();
         }
     } else
         LOGE("Failed to store Preview frame. No Postview ");

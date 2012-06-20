@@ -2564,7 +2564,9 @@ void QualcommCameraHardware::runFrameThread(void *data)
     LOGV("FRAME: loading libqcamera at %p", libhandle);
     if (!libhandle) {
         LOGE("FATAL ERROR: could not dlopen liboemcamera.so: %s", dlerror());
+        return;
     }
+
     if (libhandle)
 #endif
     {

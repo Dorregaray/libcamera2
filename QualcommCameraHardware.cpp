@@ -86,7 +86,7 @@ typedef int liveshot_status;
 #define ACTIVE_VIDEO_BUFFERS 3
 
 #define PAD_TO_2K(x) (((x)+2047)& ~2047)
-#define PAD_TO_4K(x) (x) /* FIXME */
+#define PAD_TO_4K(x) (((x)+4095)& ~4095)
 
 #define LOGV LOGD
 
@@ -994,7 +994,7 @@ static bool native_get_zoomratios(int camfd, void *pZr, int maxZoomLevel);
 
 static int dstOffset = 0;
 
-static int camerafd;
+static int camerafd = -1;
 pthread_t w_thread;
 
 void *opencamerafd(void *data) {
@@ -2344,9 +2344,9 @@ bool QualcommCameraHardware::native_jpeg_encode(void)
     if(str != NULL) {
       strncpy(dateTime, str, 19);
       dateTime[19] = '\0';
-      /*
+
       addExifTag(EXIFTAGID_EXIF_DATE_TIME_ORIGINAL, EXIF_ASCII,
-                  20, 1, (void *)dateTime);*/
+                  20, 1, (void *)dateTime);
     }
 #if 0
     int focalLengthValue = (int) (mParameters.getFloat(
@@ -2576,7 +2576,7 @@ void QualcommCameraHardware::runFrameThread(void *data)
     }
 
     mPreviewHeap.clear();
-    if(( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660))
+    if((mCurrentTarget == TARGET_MSM7630) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660))
         mRecordHeap.clear();
 
 #if DLOPEN_LIBMMCAMERA
@@ -6658,18 +6658,58 @@ void QualcommCameraHardware::encodeData() {
     LOGV("encodeData: X");
 }
 
+static struct CameraInfo cameras[MSM_MAX_CAMERA_SENSORS];
+static int num_cameras = 0;
+
+#define CAMERA_MODE_2D 0
+#define CAMERA_MODE_3D 1
+
+void getCameraInfo()
+{
+    struct msm_camera_info camInfo;
+    int i, ret;
+    int camfd = open(MSM_CAMERA_CONTROL, O_RDWR);
+    LOGV("getCameraInfo");
+
+    if (camfd >= 0) {
+        ret = ioctl(camfd, MSM_CAM_IOCTL_GET_CAMERA_INFO, &camInfo);
+        close(camfd);
+        if (ret < 0) {
+             LOGE("getCameraInfo: MSM_CAM_IOCTL_GET_CAMERA_INFO fd %d error %s",
+                  camfd, strerror(errno));
+	     num_cameras = 0;
+             return;
+        }
+
+        for (i = 0; i < camInfo.num_cameras; ++i)
+        {
+             cameras[i].facing = camInfo.is_internal_cam[i] == 1 ? CAMERA_FACING_FRONT : CAMERA_FACING_BACK;
+             cameras[i].orientation = camInfo.s_mount_angle[i];
+             cameras[i].mode = camInfo.has_3d_support[i] == 1 ? CAMERA_MODE_3D : CAMERA_MODE_2D;
+             LOGV("camera %d, facing: %d, orientation: %d, mode: %d\n", i, cameras[i].facing, cameras[i].orientation, cameras[i].mode);
+        }
+        num_cameras = camInfo.num_cameras;
+    }
+    LOGV("num cameras: %d\n", num_cameras);
+}
+
 /* Gingerbread API functions */
 extern "C" int HAL_getNumberOfCameras()
 {
-    return 1;
+    if (num_cameras < 0) {
+        getCameraInfo();
+    }
+    return num_cameras;
 }
 
 extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
 {
-    CAMERA_HAL_UNUSED(cameraId);
-    cameraInfo->facing      = CAMERA_FACING_FRONT;
-    cameraInfo->orientation = 90;
-    cameraInfo->mode        = 0;
+    if (num_cameras < 0) {
+        getCameraInfo();
+    }
+    if (cameraId < num_cameras) {
+        memcpy(cameraInfo, &cameras[cameraId], sizeof(struct CameraInfo));
+    }
 }
 
 extern "C" sp<CameraHardwareInterface> HAL_openCameraHardware(int cameraId)

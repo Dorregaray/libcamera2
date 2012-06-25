@@ -5160,6 +5160,8 @@ bool QualcommCameraHardware::previewEnabled()
      * mOverlay not being NULL to ensure that previewEnabled returns
      * accurate information.
      */
+    LOGI("%s mCameraRunning: %d, mDataCallback: %p, mOverlay: %p, msgEnabled: %d", __FUNCTION__,
+           mCameraRunning, mDataCallback, mOverlay, (mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME));
     return mCameraRunning && mDataCallback &&
            ((mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) || (mOverlay != NULL));
 }

@@ -5538,7 +5538,7 @@ status_t QualcommCameraHardware::setStrTextures(const CameraParameters& params) 
 
 status_t QualcommCameraHardware::setBrightness(const CameraParameters& params) {
 
-        if(!strcmp(sensorType->name, "2mp")) {
+        if((!strcmp(sensorType->name, "2mp")) || (!strcmp(sensorType->name, "ov7692"))) {
             LOGE("Set Brightness not supported for this sensor");
             return NO_ERROR;
         }
@@ -5572,7 +5572,8 @@ status_t QualcommCameraHardware::setSkinToneEnhancement(const CameraParameters& 
 
 status_t QualcommCameraHardware::setWhiteBalance(const CameraParameters& params)
 {
-    if(!strcmp(sensorType->name, "2mp")) {
+    if((!strcmp(sensorType->name, "2mp")) ||
+        (!strcmp(sensorType->name, "ov7692"))){
         LOGE("WhiteBalance not supported for this sensor");
         return NO_ERROR;
     }

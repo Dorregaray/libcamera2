@@ -1106,20 +1106,16 @@ QualcommCameraHardware::QualcommCameraHardware()
     }
     // Initialize with default format values. The format values can be
     // overriden when application requests.
-#if 0
     mDimension.prev_format     = CAMERA_YUV_420_NV21;
-#endif
     mPreviewFormat             = CAMERA_YUV_420_NV21;
-#if 0
     mDimension.enc_format      = CAMERA_YUV_420_NV21;
     if((mCurrentTarget == TARGET_MSM7630) || (mCurrentTarget == TARGET_MSM8660))
         mDimension.enc_format  = CAMERA_YUV_420_NV12;
 
     mDimension.main_img_format = CAMERA_YUV_420_NV21;
     mDimension.thumb_format    = CAMERA_YUV_420_NV21;
-#endif
-
-    if( (mCurrentTarget == TARGET_MSM7630)/* || (mCurrentTarget == TARGET_MSM8660)*/ ){
+#if 0 /* disable dis for now */
+    if ((mCurrentTarget == TARGET_MSM7630) || (mCurrentTarget == TARGET_MSM8660)) {
         /* DIS is enabled all the time in VPE support targets.
          * No provision for the user to control this.
          */
@@ -1131,7 +1127,7 @@ QualcommCameraHardware::QualcommCameraHardware()
         mDisEnabled = atoi(value);
         mVpeEnabled = 1;
     }
-
+#endif
     LOGV("constructor EX");
 }
 

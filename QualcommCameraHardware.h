@@ -52,23 +52,51 @@ typedef uint8_t cam_ctrl_type;
 #define CEILING16(x) (x&0xfffffff0)
 #define CEILING32(x) (x) /* FIXME */
 typedef struct {
-	//Size: 0x20 bytes = 32 bytes = 16 short
-	unsigned short video_width;//0xe4
-	unsigned short video_height;//0xe6
-	unsigned short picture_width; //0xe8
-	unsigned short picture_height;//0xea
-	unsigned short display_width; //0xec
-	unsigned short display_height; //0xee
-	unsigned short orig_picture_dx;  //0xf0
-	unsigned short orig_picture_dy; //0xf2
-	unsigned short ui_thumbnail_width; //0xf4
-	unsigned short ui_thumbnail_height; //0xf6
-	unsigned short thumbnail_width;  //0xf8
-	unsigned short thumbnail_height;  //0xfa
-	unsigned short raw_picture_height; //0xfc
-	unsigned short raw_picture_width;  //0xfe
-	unsigned short filler7;   ///0x100
-	unsigned short filler8;   //0x102
+	//Size: 88 bytes = 44 short
+	unsigned short video_width;
+	unsigned short video_height;
+	unsigned short picture_width;
+	unsigned short picture_height;
+	unsigned short display_width;
+	unsigned short display_height;
+	unsigned short orig_picture_dx;
+	unsigned short orig_picture_dy;
+	unsigned short ui_thumbnail_width;
+	unsigned short ui_thumbnail_height;
+	unsigned short thumbnail_width;
+	unsigned short thumbnail_height;
+	unsigned short raw_picture_height;
+	unsigned short raw_picture_width;
+	unsigned short filler7;
+	unsigned short filler8;
+	unsigned short filler9;
+	unsigned short filler10;
+	unsigned short prev_format; //guesss
+	unsigned short filler12;
+	unsigned short filler13;
+	unsigned short filler14;
+	unsigned short main_img_format; //guess
+	unsigned short enc_format; //guess
+	unsigned short thumb_format; //guess
+	unsigned short filler18;
+	unsigned short filler19;
+	unsigned short filler20;
+	unsigned short filler21;
+	unsigned short filler22;
+	unsigned short filler23;
+	unsigned short filler24;
+	unsigned short filler25;
+	unsigned short filler26;
+	unsigned short filler27;
+	unsigned short filler28;
+	unsigned short filler29;
+	unsigned short filler30;
+	unsigned short filler31;
+	unsigned short filler32;
+	unsigned short filler33;
+	unsigned short filler34;
+	unsigned short filler35;
+	unsigned short filler36;
 } cam_ctrl_dimension_t;
 
 typedef struct {
@@ -354,14 +382,12 @@ typedef struct {
 	exif_tag_entry_t tag_entry;
 } exif_tags_info_t;
 
-/*  FIXME: need real values */
 enum {
       CAMERA_YUV_420_NV12,
       CAMERA_YUV_420_NV21,
       CAMERA_YUV_420_NV21_ADRENO
 };
 
-/*  FIXME */
 typedef enum {
       AUTO,
       SPOT,

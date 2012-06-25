@@ -4018,49 +4018,27 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     status_t rc, final_rc = NO_ERROR;
 
     if ((rc = setPreviewSize(params))) final_rc = rc;
-    if (final_rc) LOGV("setPreviewSize failed");
     if ((rc = setPreviewFrameRate(params))) final_rc = rc;
-    if (final_rc) LOGV("setPreviewFrameRate failed");
     if ((rc = setPreviewFrameRateMode(params))) final_rc = rc;
-    if (final_rc) LOGV("setPreviewFrameRateMode failed");
     if ((rc = setPictureSize(params)))  final_rc = rc;
-    if (final_rc) LOGV("setPictureSize failed");
     if ((rc = setJpegThumbnailSize(params))) final_rc = rc;
-    if (final_rc) LOGV("setJpegThumbnailSize failed");
     if ((rc = setJpegQuality(params)))  final_rc = rc;
-    if (final_rc) LOGV("setJpegQuality failed");
     if ((rc = setEffect(params)))       final_rc = rc;
-    if (final_rc) LOGV("setEffect failed");
     if ((rc = setGpsLocation(params)))  final_rc = rc;
-    if (final_rc) LOGV("setGpsLocation failed");
     if ((rc = setRotation(params)))     final_rc = rc;
-    if (final_rc) LOGV("setRotation failed");
-    if ((rc = setZoom(params)))         final_rc = rc; //TODO: checkme
-    if (final_rc) LOGV("setZoom failed");
+    if ((rc = setZoom(params)))         final_rc = rc;
     if ((rc = setOrientation(params)))  final_rc = rc;
-    if (final_rc) LOGV("setOrientation failed");
     if ((rc = setLensshadeValue(params)))  final_rc = rc;
-    if (final_rc) LOGV("setLensshadeValue failed");
     if ((rc = setPictureFormat(params))) final_rc = rc;
-    if (final_rc) LOGV("setPictureFormat failed");
     if ((rc = setSharpness(params)))    final_rc = rc;
-    if (final_rc) LOGV("setSharpness failed");
     if ((rc = setSaturation(params)))   final_rc = rc;
-    if (final_rc) LOGV("setSaturation failed");
     if ((rc = setContinuousAf(params)))  final_rc = rc;
-    if (final_rc) LOGV("setContinuousAf failed");
     if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
-    if (final_rc) LOGV("setSelectableZoneAf failed");
     if ((rc = setTouchAfAec(params)))   final_rc = rc;
-    if (final_rc) LOGV("setTouchAfAec failed");
     if ((rc = setSceneMode(params)))  final_rc = rc;
-    if (final_rc) LOGV("setSceneMode failed");
     if ((rc = setContrast(params)))     final_rc = rc;
-    if (final_rc) LOGV("setContrast failed");
     if ((rc = setRecordSize(params)))  final_rc = rc;
-    if (final_rc) LOGV("setRecordSize failed");
     if ((rc = setSceneDetect(params)))  final_rc = rc;
-    if (final_rc) LOGV("setSceneDetect failed");
     if ((rc = setStrTextures(params)))   final_rc = rc;
     if ((rc = setPreviewFormat(params)))   final_rc = rc;
     if ((rc = setSkinToneEnhancement(params)))   final_rc = rc;
@@ -4070,27 +4048,13 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     int32_t value = attr_lookup(scenemode, sizeof(scenemode) / sizeof(str_map), str);
 
     if((value != NOT_FOUND) && (value == CAMERA_BESTSHOT_OFF)) {
-        LOGV("setting Scenemode related params");
         if ((rc = setAutoExposure(params))) final_rc = rc;
-        if (final_rc) LOGV("setAutoExposure failed");
         if ((rc = setExposureCompensation(params))) final_rc = rc;
-        if (final_rc) LOGV("setExposureCompensation failed");
         if ((rc = setWhiteBalance(params))) final_rc = rc;
-        if (final_rc) LOGV("setWhiteBalance failed");
         if ((rc = setFlash(params)))        final_rc = rc;
-        if (final_rc) LOGV("setFlash failed");
         if ((rc = setFocusMode(params)))    final_rc = rc;
-        if (final_rc) LOGV("setFocusMode failed");
         if ((rc = setBrightness(params)))   final_rc = rc;
-        if (final_rc) LOGV("setBrightness failed");
         if ((rc = setISOValue(params)))  final_rc = rc;
-        if (final_rc) LOGV("setISOValue failed");
-    }
-
-    if (final_rc)
-    {
-        LOGE("Setting parameters failed, but returning success");
-        final_rc = NO_ERROR;
     }
 
     LOGV("setParameters: X");
@@ -5221,6 +5185,8 @@ bool QualcommCameraHardware::previewEnabled()
      * mOverlay not being NULL to ensure that previewEnabled returns
      * accurate information.
      */
+    LOGI("%s mCameraRunning: %d, mDataCallback: %p, mOverlay: %p, msgEnabled: %d", __FUNCTION__,
+           mCameraRunning, mDataCallback, mOverlay, (mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME));
     return mCameraRunning && mDataCallback &&
            ((mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) || (mOverlay != NULL));
 }

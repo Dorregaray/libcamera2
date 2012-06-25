@@ -1528,7 +1528,7 @@ void QualcommCameraHardware::findSensorType(){
             if (sensorTypes[i].rawPictureHeight
                     == mDimension.raw_picture_height) {
                 sensorType = sensorTypes + i;
-                LOGV("sensorType found");
+                LOGV("sensorType: %s", sensorTypes[i].name);
                 return;
             }
         }

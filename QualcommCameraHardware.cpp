@@ -220,8 +220,6 @@ board_property boardProperties[] = {
         {TARGET_QSD8250, 0x00000fff, false, false}
 };
 
-//static const camera_size_type* picture_sizes;
-//static int PICTURE_SIZE_COUNT;
 /*       TODO
  * Ideally this should be a populated by lower layers.
  * But currently this is no API to do that at lower layer.
@@ -1214,9 +1212,11 @@ void QualcommCameraHardware::initDefaultParameters()
     mDimension.thumbnail_height = mDimension.ui_thumbnail_height;
 
     findSensorType();
+
     //Disable DIS for Web Camera
     if(!strcmp(sensorType->name, "ov7692"))
         mDisEnabled = 0;
+
     // Initialize constant parameter strings. This will happen only once in the
     // lifetime of the mediaserver process.
     if (!parameter_string_initialized) {
@@ -4433,7 +4433,7 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
     }
     mInPreviewCallback = false;
 
-//    LOGV("receivePreviewFrame X");
+    LOGV("receivePreviewFrame X");
 }
 
 
@@ -4443,7 +4443,7 @@ bool QualcommCameraHardware::initRecord()
     int CbCrOffset;
     int recordBufferSize;
 
-    LOGV("initREcord E");
+    LOGV("initRecord E");
 
     if(mCurrentTarget == TARGET_MSM8660)
         pmem_region = "/dev/pmem_smipool";
@@ -4532,7 +4532,7 @@ bool QualcommCameraHardware::initRecord()
         for(int i=ACTIVE_VIDEO_BUFFERS+1;i <kRecordBufferCount; i++)
             LINK_camframe_free_video(&recordframes[i]);
     }
-    LOGV("initREcord X");
+    LOGV("initRecord X");
 
     return true;
 }

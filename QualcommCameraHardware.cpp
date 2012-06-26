@@ -2133,14 +2133,13 @@ static void addExifTag(exif_tag_id_t tagid, exif_tag_type_t type,
                         uint32_t count, uint8_t copy, void *data) {
     LOGV("%s E", __FUNCTION__);
 
-#if 0
     if(exif_table_numEntries == MAX_EXIF_TABLE_ENTRIES) {
         LOGE("Number of entries exceeded limit");
         return;
     }
 
     int index = exif_table_numEntries;
-    exif_data[index].tag_id = tagid;
+    exif_data[index].tagid = tagid;
 	exif_data[index].tag_entry.type = type;
 	exif_data[index].tag_entry.count = count;
 	exif_data[index].tag_entry.copy = copy;
@@ -2155,7 +2154,6 @@ static void addExifTag(exif_tag_id_t tagid, exif_tag_type_t type,
 
     // Increase number of entries
     exif_table_numEntries++;
-#endif
     return;
 }
 
@@ -2186,7 +2184,6 @@ static void setLatLon(exif_tag_id_t tag, const char *latlonString) {
                        {minutes, 1},
                        {seconds, 1000} };
 
-#if 0
     if(tag == EXIFTAGID_GPS_LATITUDE) {
         memcpy(latitude, value, sizeof(latitude));
         addExifTag(EXIFTAGID_GPS_LATITUDE, EXIF_RATIONAL, 3,
@@ -2196,7 +2193,6 @@ static void setLatLon(exif_tag_id_t tag, const char *latlonString) {
         addExifTag(EXIFTAGID_GPS_LONGITUDE, EXIF_RATIONAL, 3,
                     1, (void *)longitude);
     }
-#endif
 }
 
 void QualcommCameraHardware::setGpsParameters() {
@@ -2268,7 +2264,7 @@ void QualcommCameraHardware::setGpsParameters() {
         addExifTag(EXIFTAGID_GPS_ALTITUDE_REF, EXIF_BYTE, 1,
                     1, (void *)&ref);
     }
-#if 0
+
     //set Gps TimeStamp
     str = NULL;
     str = mParameters.get(CameraParameters::KEY_GPS_TIMESTAMP);
@@ -2294,7 +2290,6 @@ void QualcommCameraHardware::setGpsParameters() {
       addExifTag(EXIFTAGID_GPS_TIMESTAMP, EXIF_RATIONAL,
                   3, 1, (void *)&gpsTimestamp);
     }
-#endif
 }
 
 bool QualcommCameraHardware::native_jpeg_encode(void)
@@ -2418,7 +2413,7 @@ bool QualcommCameraHardware::native_jpeg_encode(void)
                                       thumbfd,
                                       (uint8_t *)mRawHeap->mHeap->base(),
                                       mRawHeap->mHeap->getHeapID(),
-                                      &mCrop, exif_data, /*exif_table_numEntries*/0,
+                                      &mCrop, exif_data, exif_table_numEntries,
                                       jpegPadding/2, CbCrOffset)) {
             LOGE("native_jpeg_encode: jpeg_encoder_encode failed.");
             return false;

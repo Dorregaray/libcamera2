@@ -344,55 +344,61 @@ struct cam_frame_start_parms {
 	struct msm_frame video_frame;
 };
 
-typedef struct {
-	unsigned int a;
-	unsigned int b;
-} rat_t;
-
+#define EXIFTAGID_GPS_LATITUDE_REF        0x10001
+#define EXIFTAGID_GPS_LATITUDE            0x20002
+#define EXIFTAGID_GPS_LONGITUDE_REF       0x30003
+#define EXIFTAGID_GPS_LONGITUDE           0x40004
+#define EXIFTAGID_GPS_ALTITUDE_REF        0x50005
+#define EXIFTAGID_GPS_ALTITUDE            0x60006
+#define EXIFTAGID_GPS_TIMESTAMP           0x70007
+#define EXIFTAGID_GPS_DATESTAMP           0x0001D /* FIXME */
+#define EXIFTAGID_EXIF_CAMERA_MAKER       0x21010F
+#define EXIFTAGID_EXIF_CAMERA_MODEL       0x220110
+#define EXIFTAGID_EXIF_DATE_TIME_ORIGINAL 0x3A9003
+#define EXIFTAGID_EXIF_DATE_TIME          0x3B9004
 typedef unsigned int exif_tag_id_t;
-enum {
-	EXIFTAGID_GPS_LATITUDE_REF        = 0x10001,
-	EXIFTAGID_GPS_LATITUDE            = 0x20002,
-	EXIFTAGID_GPS_LONGITUDE_REF       = 0x30003,
-	EXIFTAGID_GPS_LONGITUDE           = 0x40004,
-	EXIFTAGID_GPS_ALTITUDE_REF        = 0x50005,
-	EXIFTAGID_GPS_ALTITUDE            = 0x60006,
-	EXIFTAGID_EXIF_CAMERA_MAKER       = 0x21010F,
-	EXIFTAGID_EXIF_CAMERA_MODEL       = 0x220110,
-	EXIFTAGID_EXIF_DATE_TIME_ORIGINAL = 0x3A9003,
-	EXIFTAGID_EXIF_DATE_TIME          = 0x3B9004,
-};
+
 #define EXIF_RATIONAL 5
 #define EXIF_ASCII 2
 #define EXIF_BYTE 1
 typedef unsigned int exif_tag_type_t;
 
 typedef struct {
-	//24 bytes = 6 ints
-	exif_tag_type_t type;
-	uint32_t count;
-	uint32_t copy;
-	uint32_t junk1;
-	uint32_t junk2;
-	uint32_t junk3;
+    int val;
+    int otherval;
+} rat_t;
+
+typedef union {
+    char * _ascii; /* At byte 16 relative to exif_tag_entry_t */
+    rat_t * _rats;
+    rat_t  _rat;
+    uint8_t _byte;
+} exif_tag_data_t;
+
+/* The entire exif_tag_entry_t struct must be 24 bytes in length */
+typedef struct {
+    exif_tag_type_t type;
+    uint32_t copy;
+    uint32_t count;
+    exif_tag_data_t data;
 } exif_tag_entry_t;
 
 typedef struct {
-	exif_tag_id_t tagid;
-	exif_tag_entry_t tag_entry;
+    exif_tag_id_t tagid;
+    exif_tag_entry_t tag_entry;
 } exif_tags_info_t;
 
 enum {
-      CAMERA_YUV_420_NV12,
-      CAMERA_YUV_420_NV21,
-      CAMERA_YUV_420_NV21_ADRENO
+    CAMERA_YUV_420_NV12,
+    CAMERA_YUV_420_NV21,
+    CAMERA_YUV_420_NV21_ADRENO
 };
 
 typedef enum {
-      AUTO,
-      SPOT,
-      CENTER_WEIGHTED,
-      AVERAGE
+    AUTO,
+    SPOT,
+    CENTER_WEIGHTED,
+    AVERAGE
 } select_zone_af_t;
 
 // End of closed stuff

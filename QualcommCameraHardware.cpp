@@ -2780,6 +2780,10 @@ bool QualcommCameraHardware::initPreview()
 
     mDimension.display_width = previewWidth;
     mDimension.display_height= previewHeight;
+    mDimension.ui_thumbnail_width =
+        thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
+    mDimension.ui_thumbnail_height =
+        thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
 
     LOGV("initPreview E: preview size=%dx%d videosize = %d x %d", previewWidth, previewHeight, videoWidth, videoHeight );
 
@@ -2878,9 +2882,6 @@ bool QualcommCameraHardware::initPreview()
 
     unsigned short orig_video_width = videoWidth;
     unsigned short orig_video_height = videoHeight;
-    cam_ctrl_dimension_t *t = &mDimension;
-
-    dump_dimensions(&mDimension);
 
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
@@ -2888,16 +2889,14 @@ bool QualcommCameraHardware::initPreview()
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
                                sizeof(cam_ctrl_dimension_t), &mDimension);
 
-    dump_dimensions(&mDimension);
+    // restore video_width/video_height
+    if (mDimension.video_width == 0 || mDimension.video_height == 0)
+    {
+        mDimension.video_width = orig_video_width;
+        mDimension.video_height = orig_video_height;
+    }
 
     if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
-
-        if (mDimension.video_width == 0 || mDimension.video_height == 0)
-        {
-            LOGE("video dimensions are wrong: %d x %d. restore", mDimension.video_width, mDimension.video_height);
-            mDimension.video_width = orig_video_width;
-            mDimension.video_height = orig_video_height;
-        }
 
         // Allocate video buffers after allocating preview buffers.
         initRecord();
@@ -2967,22 +2966,23 @@ bool QualcommCameraHardware::initRawSnapshot()
 {
     LOGV("initRawSnapshot E");
     const char * pmem_region;
+    cam_ctrl_dimension_t dimension = mDimension;
 
     //get width and height from Dimension Object
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
-                               sizeof(cam_ctrl_dimension_t), &mDimension);
+                               sizeof(cam_ctrl_dimension_t), &dimension);
 
     if(!ret){
         LOGE("initRawSnapshot X: failed to set dimension");
         return false;
     }
-    int rawSnapshotSize = mDimension.raw_picture_height *
-                           mDimension.raw_picture_width;
+    int rawSnapshotSize = dimension.raw_picture_height *
+                           dimension.raw_picture_width;
 
     LOGV("raw_snapshot_buffer_size = %d, raw_picture_height = %d, "\
          "raw_picture_width = %d",
-          rawSnapshotSize, mDimension.raw_picture_height,
-          mDimension.raw_picture_width);
+          rawSnapshotSize, dimension.raw_picture_height,
+          dimension.raw_picture_width);
 
     if (mRawSnapShotPmemHeap != NULL) {
         LOGV("initRawSnapshot: clearing old mRawSnapShotPmemHeap.");
@@ -3080,18 +3080,27 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
             mDimension.ui_thumbnail_width,
             mDimension.ui_thumbnail_height);
 
-#if 0
     if(mPreviewFormat == CAMERA_YUV_420_NV21_ADRENO){
         mDimension.main_img_format = CAMERA_YUV_420_NV21_ADRENO;
         mDimension.thumb_format = CAMERA_YUV_420_NV21_ADRENO;
     }
-#endif
+
+    int orig_video_width = mDimension.video_width;
+    int orig_video_height = mDimension.video_height;
 
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
                                sizeof(cam_ctrl_dimension_t), &mDimension);
+
+    // restore video_width/video_height cleaned in native_set_parm
+    if (mDimension.video_width == 0 || mDimension.video_height == 0)
+    {
+        mDimension.video_width = orig_video_width;
+        mDimension.video_height = orig_video_height;
+    }
+
     if(!ret) {
         LOGE("initRaw X: failed to set dimension");
         return false;

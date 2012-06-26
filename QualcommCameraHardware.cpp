@@ -1114,7 +1114,7 @@ QualcommCameraHardware::QualcommCameraHardware()
 
     mDimension.main_img_format = CAMERA_YUV_420_NV21;
     mDimension.thumb_format    = CAMERA_YUV_420_NV21;
-#if 0 /* disable dis for now */
+
     if ((mCurrentTarget == TARGET_MSM7630) || (mCurrentTarget == TARGET_MSM8660)) {
         /* DIS is enabled all the time in VPE support targets.
          * No provision for the user to control this.
@@ -1127,7 +1127,7 @@ QualcommCameraHardware::QualcommCameraHardware()
         mDisEnabled = atoi(value);
         mVpeEnabled = 1;
     }
-#endif
+
     LOGV("constructor EX");
 }
 
@@ -4543,9 +4543,9 @@ status_t QualcommCameraHardware::setDIS() {
     video_dis_param_ctrl_t disCtrl;
 #endif
     bool ret = true;
-#if 0
-    LOGV("mDisEnabled = %d", mDisEnabled);
 
+    LOGV("mDisEnabled = %d", mDisEnabled);
+#if 0
     int video_frame_cbcroffset;
     video_frame_cbcroffset = PAD_TO_WORD(videoWidth * videoHeight);
     if(mCurrentTarget == TARGET_MSM8660)

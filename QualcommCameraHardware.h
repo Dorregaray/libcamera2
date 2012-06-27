@@ -679,8 +679,8 @@ private:
     bool camframe_timeout_flag;
     bool mReleasedRecordingFrame;
 
-    void receiveRawPicture(void);
-    void receiveRawSnapshot(void);
+    bool receiveRawPicture(void);
+    bool receiveRawSnapshot(void);
 
     Mutex mCallbackLock;
     Mutex mOverlayLock;

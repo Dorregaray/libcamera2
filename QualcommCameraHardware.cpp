@@ -1390,6 +1390,10 @@ void QualcommCameraHardware::initDefaultParameters()
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_SIZES,
                     preview_size_values.string());
+
+    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES,
+                    preview_size_values.string());
+
     mParameters.set(CameraParameters::KEY_SUPPORTED_PICTURE_SIZES,
                     picture_size_values.string());
     mParameters.set(CameraParameters::KEY_SUPPORTED_ANTIBANDING,

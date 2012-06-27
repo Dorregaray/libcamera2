@@ -3451,10 +3451,14 @@ status_t QualcommCameraHardware::startPreviewInternal()
 
     if(!mCameraRunning) {
         deinitPreview();
+        /* Flush the Busy Q */
+        cam_frame_flush_video();
+        /* Need to flush the free Qs as these are initalized in initPreview.*/
+        LINK_cam_frame_flush_free_video();
         mPreviewInitialized = false;
-	mOverlayLock.lock();
+        mOverlayLock.lock();
         mOverlay = NULL;
-	mOverlayLock.unlock();
+        mOverlayLock.unlock();
         LOGE("startPreview X: native_start_preview failed!");
         return UNKNOWN_ERROR;
     }

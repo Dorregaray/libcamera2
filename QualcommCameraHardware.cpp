@@ -5200,19 +5200,50 @@ bool QualcommCameraHardware::previewEnabled()
 }
 status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)
 {
-    int width, height;
     LOGV("%s E", __FUNCTION__);
-    const char *str = params.get("record-size");
-    if(str) {
-        LOGV("Requested Record size %s", str);
-        mParameters.set("record-size" , str);
-    } else {
-        //set the record-size value to null.
-        //This is required as the application can request
-        //to reset this value, so that it won't be carried
-        //when switched to camera.
+    const char *recordSize = NULL;
+    recordSize = params.get("record-size");
+    if(!recordSize) {
         mParameters.set("record-size", "");
+        //If application didn't set this parameter string, use the values from
+        //getPreviewSize() as video dimensions.
+        LOGV("No Record Size requested, use the preview dimensions");
+        videoWidth = previewWidth;
+        videoHeight = previewHeight;
+    } else {
+        //Extract the record witdh and height that application requested.
+        LOGI("%s: requested record size %s", __FUNCTION__, recordSize);
+        if(!parse_size(recordSize, videoWidth, videoHeight)) {
+            mParameters.set("record-size" , recordSize);
+            //VFE output1 shouldn't be greater than VFE output2.
+            if( (previewWidth > videoWidth) || (previewHeight > videoHeight)) {
+                //Set preview sizes as record sizes.
+                LOGI("Preview size %dx%d is greater than record size %dx%d,\
+                   resetting preview size to record size",previewWidth,\
+                     previewHeight, videoWidth, videoHeight);
+                previewWidth = videoWidth;
+                previewHeight = videoHeight;
+                mParameters.setPreviewSize(previewWidth, previewHeight);
+            }
+            if( (mCurrentTarget != TARGET_MSM7630)
+                && (mCurrentTarget != TARGET_QSD8250)
+                 && (mCurrentTarget != TARGET_MSM8660) ) {
+                //For Single VFE output targets, use record dimensions as preview dimensions.
+                previewWidth = videoWidth;
+                previewHeight = videoHeight;
+                mParameters.setPreviewSize(previewWidth, previewHeight);
+            }
+        } else {
+            mParameters.set("record-size", "");
+            LOGE("initPreview X: failed to parse parameter record-size (%s)", recordSize);
+            return BAD_VALUE;
+        }
     }
+    mParameters.setVideoSize(videoWidth,videoHeight);
+    LOGI("%s: preview dimensions: %dx%d", __FUNCTION__, previewWidth, previewHeight);
+    LOGI("%s: video dimensions: %dx%d", __FUNCTION__, videoWidth, videoHeight);
+    mDimension.display_width = previewWidth;
+    mDimension.display_height= previewHeight;
     return NO_ERROR;
 }
 

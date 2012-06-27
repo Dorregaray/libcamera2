@@ -6735,6 +6735,8 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
                 cameraInfo->orientation = HAL_cameraInfo[i].orientation;
             else if(mCurrentTarget == TARGET_MSM7627)
                 cameraInfo->orientation = HAL_cameraInfo[i].orientation;
+            else if(mCurrentTarget == TARGET_MSM8660)
+                cameraInfo->orientation = HAL_cameraInfo[i].orientation;
             else
                 cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].orientation) + 360)%360;
 

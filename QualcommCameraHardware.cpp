@@ -4080,7 +4080,8 @@ status_t QualcommCameraHardware::sendCommand(int32_t command, int32_t arg1,
                                              int32_t arg2)
 {
     LOGV("sendCommand: EX");
-    return BAD_VALUE;
+    LOGV("The command %i is not supported yet", command);
+    return NO_ERROR;
 }
 
 extern "C" sp<CameraHardwareInterface> openCameraHardware()

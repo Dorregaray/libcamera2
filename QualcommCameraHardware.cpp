@@ -1233,6 +1233,8 @@ void QualcommCameraHardware::initDefaultParameters()
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
     mDimension.thumbnail_width = mDimension.ui_thumbnail_width;
     mDimension.thumbnail_height = mDimension.ui_thumbnail_height;
+    mDimension.orig_picture_dx = mDimension.ui_thumbnail_width;
+    mDimension.orig_picture_dy = mDimension.ui_thumbnail_height;
 
     findSensorType();
 
@@ -2924,20 +2926,15 @@ bool QualcommCameraHardware::initPreview()
     unsigned short orig_video_width = videoWidth;
     unsigned short orig_video_height = videoHeight;
 
+    /* We have all set, don't call it as it clears the video_width/height and orig_picture_dx/orig_picture_dy */
+#if 0
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
                                sizeof(cam_ctrl_dimension_t), &mDimension);
-
-    // restore video_width/video_height
-    if (mDimension.video_width == 0 || mDimension.video_height == 0)
-    {
-        mDimension.video_width = orig_video_width;
-        mDimension.video_height = orig_video_height;
-    }
-
-    if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
+#endif
+    if ((mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
 
         // Allocate video buffers after allocating preview buffers.
         initRecord();

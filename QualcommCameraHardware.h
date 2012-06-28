@@ -433,6 +433,7 @@ struct board_property{
     unsigned int previewSizeMask;
     bool hasSceneDetect;
     bool hasSelectableZoneAf;
+    bool hasFaceDetect;
 };
 
 namespace android {
@@ -492,6 +493,9 @@ private:
     QualcommCameraHardware();
     virtual ~QualcommCameraHardware();
     status_t startPreviewInternal();
+    status_t runFaceDetection();
+    status_t setFaceDetection(const char *str);
+
     void stopPreviewInternal();
     friend void *auto_focus_thread(void *user);
     void runAutoFocus();
@@ -576,6 +580,7 @@ private:
     sp<PmemPool> mRawHeap;
     sp<PmemPool> mDisplayHeap;
     sp<AshmemPool> mJpegHeap;
+    sp<AshmemPool> mMetaDataHeap;
     sp<PmemPool> mRawSnapShotPmemHeap;
     sp<PmemPool> mPostViewHeap;
 
@@ -603,6 +608,10 @@ private:
     friend void *video_thread(void *user);
     void runVideoThread(void *data);
 
+    //For Face Detection
+    int mFaceDetectOn;
+    bool mSendMetaData;
+    Mutex mMetaDataWaitLock;
 
     bool mShutterPending;
     Mutex mShutterLock;
@@ -633,6 +642,7 @@ private:
     void storeTargetType();
     bool supportsSceneDetection();
     bool supportsSelectableZoneAf();
+    bool supportsFaceDetection();
 
     void initDefaultParameters();
     void findSensorType();

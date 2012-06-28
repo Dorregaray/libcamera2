@@ -38,6 +38,7 @@
 #include <linux/ioctl.h>
 #include <camera/CameraParameters.h>
 #include <media/mediarecorder.h>
+#include <system/camera.h>
 
 #include "linux/msm_mdp.h"
 #include <linux/fb.h>
@@ -214,11 +215,11 @@ static camera_size_type supportedPreviewSizes[PREVIEW_SIZE_COUNT];
 static unsigned int previewSizeCount;
 
 board_property boardProperties[] = {
-        {TARGET_MSM7625, 0x00000fff, false, false},
-        {TARGET_MSM7627, 0x000006ff, false, false},
-        {TARGET_MSM7630, 0x00000fff, true, true},
-        {TARGET_MSM8660, 0x00001fff, true, true},
-        {TARGET_QSD8250, 0x00000fff, false, false}
+        {TARGET_MSM7625, 0x00000fff, false, false, false},
+        {TARGET_MSM7627, 0x000006ff, false, false, false},
+        {TARGET_MSM7630, 0x00000fff, true, true, false},
+        {TARGET_MSM8660, 0x00001fff, true, true, false},
+        {TARGET_QSD8250, 0x00000fff, false, false, false}
 };
 
 /*       TODO
@@ -708,6 +709,11 @@ static const str_map selectable_zone_af[] = {
     { CameraParameters::SELECTABLE_ZONE_AF_FRAME_AVERAGE, AVERAGE }
 };
 
+static const str_map facedetection[] = {
+    { CameraParameters::FACE_DETECTION_OFF, FALSE },
+    { CameraParameters::FACE_DETECTION_ON, TRUE }
+};
+
 #define DONT_CARE_COORDINATE -1
 static const str_map touchafaec[] = {
     { CameraParameters::TOUCH_AF_AEC_OFF, FALSE },
@@ -729,6 +735,9 @@ struct SensorType {
  * Values based on aec.c
  */
 
+/*
+ * Values based on aec.c
+ */
 #define EXPOSURE_COMPENSATION_MAXIMUM_NUMERATOR 12
 #define EXPOSURE_COMPENSATION_MINIMUM_NUMERATOR -12
 #define EXPOSURE_COMPENSATION_DEFAULT_NUMERATOR 0
@@ -785,6 +794,7 @@ static String8 frame_rate_mode_values;
 static String8 scenedetect_values;
 static String8 preview_format_values;
 static String8 selectable_zone_af_values;
+static String8 facedetection_values;
 
 static String8 create_sizes_str(const camera_size_type *sizes, int len) {
     String8 str;
@@ -1186,10 +1196,22 @@ bool QualcommCameraHardware::supportsSceneDetection() {
 }
 
 bool QualcommCameraHardware::supportsSelectableZoneAf() {
-   unsigned prop = 0;
+   unsigned int prop = 0;
    for(prop=0; prop<sizeof(boardProperties)/sizeof(board_property); prop++) {
        if((mCurrentTarget == boardProperties[prop].target)
           && boardProperties[prop].hasSelectableZoneAf == true) {
+           return true;
+           break;
+       }
+   }
+   return false;
+}
+
+bool QualcommCameraHardware::supportsFaceDetection() {
+   unsigned int prop = 0;
+   for(prop=0; prop<sizeof(boardProperties)/sizeof(board_property); prop++) {
+       if((mCurrentTarget == boardProperties[prop].target)
+          && boardProperties[prop].hasFaceDetect == true) {
            return true;
            break;
        }
@@ -1309,6 +1331,10 @@ void QualcommCameraHardware::initDefaultParameters()
                 selectable_zone_af, sizeof(selectable_zone_af) / sizeof(str_map));
         }
 
+        if(sensorType->hasAutoFocusSupport && supportsFaceDetection()) {
+            facedetection_values = create_values_str(
+                facedetection, sizeof(facedetection) / sizeof(str_map));
+        }
         parameter_string_initialized = true;
     }
 
@@ -1499,6 +1525,10 @@ void QualcommCameraHardware::initDefaultParameters()
                     CameraParameters::SELECTABLE_ZONE_AF_AUTO);
     mParameters.set(CameraParameters::KEY_SUPPORTED_SELECTABLE_ZONE_AF,
                     selectable_zone_af_values);
+    mParameters.set(CameraParameters::KEY_FACE_DETECTION,
+                    CameraParameters::FACE_DETECTION_OFF);
+    mParameters.set(CameraParameters::KEY_SUPPORTED_FACE_DETECTION,
+                    facedetection_values);
     if (setParameters(mParameters) != NO_ERROR) {
         LOGE("Failed to set default parameters?!");
     }
@@ -4059,7 +4089,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setContinuousAf(params)))  final_rc = rc;
     if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
     if ((rc = setTouchAfAec(params)))   final_rc = rc;
-    if ((rc = setSceneMode(params)))  final_rc = rc;
+    if ((rc = setSceneMode(params)))    final_rc = rc;
     if ((rc = setContrast(params)))     final_rc = rc;
     if ((rc = setRecordSize(params)))  final_rc = rc;
     if ((rc = setSceneDetect(params)))  final_rc = rc;
@@ -4093,12 +4123,74 @@ CameraParameters QualcommCameraHardware::getParameters() const
     return mParameters;
 }
 
+status_t QualcommCameraHardware::runFaceDetection()
+{
+#if 0
+    bool ret = true;
+
+    const char *str = mParameters.get(CameraParameters::KEY_FACE_DETECTION);
+    if (str != NULL) {
+        int value = attr_lookup(facedetection,
+                sizeof(facedetection) / sizeof(str_map), str);
+
+        mMetaDataWaitLock.lock();
+        if (value == true) {
+            if(mMetaDataHeap != NULL)
+                mMetaDataHeap.clear();
+
+            mMetaDataHeap =
+                new AshmemPool((sizeof(int)*(MAX_ROI*4+1)),
+                        1,
+                        (sizeof(int)*(MAX_ROI*4+1)),
+                        "metadata");
+            if (!mMetaDataHeap->initialized()) {
+                LOGE("Meta Data Heap allocation failed ");
+                mMetaDataHeap.clear();
+                LOGE("runFaceDetection X: error initializing mMetaDataHeap");
+                mMetaDataWaitLock.unlock();
+                return UNKNOWN_ERROR;
+            }
+            mSendMetaData = true;
+        } else {
+            if(mMetaDataHeap != NULL)
+                mMetaDataHeap.clear();
+        }
+        mMetaDataWaitLock.unlock();
+        ret = native_set_parm(CAMERA_PARM_FD, sizeof(int8_t), (void *)&value);
+        return ret ? NO_ERROR : UNKNOWN_ERROR;
+    }
+    LOGE("Invalid Face Detection value: %s", (str == NULL) ? "NULL" : str);
+#endif
+    return BAD_VALUE;
+}
+
 status_t QualcommCameraHardware::sendCommand(int32_t command, int32_t arg1,
                                              int32_t arg2)
 {
     LOGV("sendCommand: EX");
-    LOGV("The command %i is not supported yet", command);
-    return NO_ERROR;
+    switch (command) {
+      case CAMERA_CMD_SET_DISPLAY_ORIENTATION:
+                                   LOGV("Display orientation is not supported yet");
+                                   return NO_ERROR;
+      case CAMERA_CMD_START_FACE_DETECTION:
+                                   setFaceDetection("on");
+                                   return runFaceDetection();
+      case CAMERA_CMD_STOP_FACE_DETECTION:
+                                   setFaceDetection("off");
+                                   return runFaceDetection();
+      case CAMERA_CMD_HISTOGRAM_SEND_DATA:
+      case CAMERA_CMD_HISTOGRAM_ON:
+      case CAMERA_CMD_HISTOGRAM_OFF:
+                                   LOGV("Histogram is not supported yet");
+                                   return BAD_VALUE;
+      case CAMERA_CMD_START_SMOOTH_ZOOM:
+      case CAMERA_CMD_STOP_SMOOTH_ZOOM:
+                                   LOGV("Smooth zoom is not supported yet");
+                                   return BAD_VALUE;
+      default:
+                                   LOGV("The command %i is not supported yet", command);
+    }
+    return BAD_VALUE;
 }
 
 extern "C" sp<CameraHardwareInterface> openCameraHardware()
@@ -4340,6 +4432,8 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
     void *pdata = mCallbackCookie;
     data_callback_timestamp rcb = mDataCallbackTimestamp;
     void *rdata = mCallbackCookie;
+    data_callback mcb = mDataCallback;
+    void *mdata = mCallbackCookie;
     mCallbackLock.unlock();
     int i=0;
     int *data=(int*)frame;
@@ -4460,6 +4554,38 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
             mReleasedRecordingFrame = false;
         }
     }
+#if 0
+    if ( mCurrentTarget == TARGET_MSM8660 ) {
+        mMetaDataWaitLock.lock();
+        if (mFaceDetectOn == true && mSendMetaData == true) {
+            mSendMetaData = false;
+            fd_roi_t *fd = (fd_roi_t *)(frame->roi_info.info);
+            int faces_detected = fd->rect_num;
+            int max_faces_detected = MAX_ROI * 4;
+            int array[max_faces_detected + 1];
+
+            array[0] = faces_detected * 4;
+            for (int i = 1, j = 0;j < MAX_ROI; j++, i = i + 4) {
+                if (j < faces_detected) {
+                    array[i]   = fd->faces[j].x;
+                    array[i+1] = fd->faces[j].y;
+                    array[i+2] = fd->faces[j].dx;
+                    array[i+3] = fd->faces[j].dx;
+                } else {
+                    array[i]   = -1;
+                    array[i+1] = -1;
+                    array[i+2] = -1;
+                    array[i+3] = -1;
+                }
+            }
+            memcpy((uint32_t *)mMetaDataHeap->mHeap->base(), (uint32_t *)array, (sizeof(int)*(MAX_ROI*4+1)));
+            if  (mcb != NULL && (msgEnabled & CAMERA_MSG_META_DATA)) {
+                mcb(CAMERA_MSG_META_DATA, mMetaDataHeap->mBuffers[0], mdata);
+            }
+        }
+        mMetaDataWaitLock.unlock();
+    }
+#endif
     mInPreviewCallback = false;
 
     LOGV("receivePreviewFrame X");
@@ -5820,6 +5946,23 @@ status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
     }
 #endif
     return NO_ERROR;
+}
+
+status_t QualcommCameraHardware::setFaceDetection(const char *str)
+{
+    if (str != NULL) {
+        int value = attr_lookup(facedetection,
+                                    sizeof(facedetection) / sizeof(str_map), str);
+        if (value != NOT_FOUND) {
+            mMetaDataWaitLock.lock();
+            mFaceDetectOn = value;
+            mMetaDataWaitLock.unlock();
+            mParameters.set(CameraParameters::KEY_FACE_DETECTION, str);
+            return NO_ERROR;
+        }
+    }
+    LOGE("Invalid Face Detection value: %s", (str == NULL) ? "NULL" : str);
+    return BAD_VALUE;
 }
 
 status_t  QualcommCameraHardware::setISOValue(const CameraParameters& params) {

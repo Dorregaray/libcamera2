@@ -5338,14 +5338,6 @@ bool QualcommCameraHardware::previewEnabled()
      * mOverlay not being NULL to ensure that previewEnabled returns
      * accurate information.
      */
-    /* On ICS there's a bit different order of the calls:
-     * the mOverlay is being set if previewEnabled returns true.
-     * Also the CAMERA_MSG_PREVIEW_FRAME is not being set but
-     * CAMERA_MSG_PREVIEW_METADATA is set so I'm using it.
-     */
-    if (mUseOverlay)
-        return mDataCallback && (mMsgEnabled & CAMERA_MSG_PREVIEW_METADATA);
-
     return mCameraRunning && mDataCallback &&
            ((mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) || (mOverlay != NULL));
 }

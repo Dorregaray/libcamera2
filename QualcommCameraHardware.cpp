@@ -1531,6 +1531,8 @@ void QualcommCameraHardware::initDefaultParameters()
                     CameraParameters::FACE_DETECTION_OFF);
     mParameters.set(CameraParameters::KEY_SUPPORTED_FACE_DETECTION,
                     facedetection_values);
+    mParameters.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO,
+                    "640x480");
     if (setParameters(mParameters) != NO_ERROR) {
         LOGE("Failed to set default parameters?!");
     }

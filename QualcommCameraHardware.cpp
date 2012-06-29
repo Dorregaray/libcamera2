@@ -2780,6 +2780,8 @@ bool QualcommCameraHardware::initPreview()
     LOGV("%s E", __FUNCTION__);
     const char * pmem_region;
 
+    mDimension.display_width = previewWidth;
+    mDimension.display_height= previewHeight;
     mDimension.ui_thumbnail_width =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
     mDimension.ui_thumbnail_height =
@@ -5338,6 +5340,7 @@ status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)
             return BAD_VALUE;
         }
     }
+    mParameters.setVideoSize(videoWidth,videoHeight);
     LOGI("%s: preview dimensions: %dx%d", __FUNCTION__, previewWidth, previewHeight);
     LOGI("%s: video dimensions: %dx%d", __FUNCTION__, videoWidth, videoHeight);
     mDimension.display_width = previewWidth;

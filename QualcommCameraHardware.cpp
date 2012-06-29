@@ -4028,11 +4028,23 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     Mutex::Autolock l(&mLock);
     status_t rc, final_rc = NO_ERROR;
 
+    if (mSnapshotThreadRunning) {
+        if ((rc = setPreviewSize(params)))  final_rc = rc;
+        if ((rc = setRecordSize(params)))  final_rc = rc;
+        if ((rc = setPictureSize(params)))  final_rc = rc;
+        if ((rc = setJpegThumbnailSize(params))) final_rc = rc;
+        if ((rc = setJpegQuality(params)))  final_rc = rc;
+        return final_rc;
+    }
+
     if ((rc = setPreviewSize(params))) final_rc = rc;
     if ((rc = setRecordSize(params)))  final_rc = rc;
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if ((rc = setJpegThumbnailSize(params))) final_rc = rc;
     if ((rc = setJpegQuality(params)))  final_rc = rc;
+    if ((rc = setPictureFormat(params))) final_rc = rc;
+    if ((rc = setRecordSize(params)))  final_rc = rc;
+    if ((rc = setPreviewFormat(params)))   final_rc = rc;
     if ((rc = setEffect(params)))       final_rc = rc;
     if ((rc = setGpsLocation(params)))  final_rc = rc;
     if ((rc = setRotation(params)))     final_rc = rc;
@@ -4042,11 +4054,10 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setPictureFormat(params))) final_rc = rc;
     if ((rc = setSharpness(params)))    final_rc = rc;
     if ((rc = setSaturation(params)))   final_rc = rc;
-    if ((rc = setContinuousAf(params)))  final_rc = rc;
-    if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
     if ((rc = setTouchAfAec(params)))   final_rc = rc;
     if ((rc = setSceneMode(params)))    final_rc = rc;
     if ((rc = setContrast(params)))     final_rc = rc;
+    if ((rc = setRecordSize(params)))  final_rc = rc;
     if ((rc = setSceneDetect(params)))  final_rc = rc;
     if ((rc = setStrTextures(params)))   final_rc = rc;
     if ((rc = setPreviewFormat(params)))   final_rc = rc;
@@ -4067,6 +4078,8 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
         if ((rc = setBrightness(params)))   final_rc = rc;
         if ((rc = setISOValue(params)))  final_rc = rc;
     }
+    if ((rc = setContinuousAf(params)))  final_rc = rc;
+    if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
 
     LOGV("setParameters: X");
     return final_rc;

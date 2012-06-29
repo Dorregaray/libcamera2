@@ -2895,7 +2895,11 @@ bool QualcommCameraHardware::initPreview()
     if ((mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
 
         // Allocate video buffers after allocating preview buffers.
-        initRecord();
+        bool status = initRecord();
+        if(status != true) {
+            LOGE("Failed to allocate video bufers");
+            return false;
+        }
     }
 
     if (ret) {
@@ -4617,6 +4621,7 @@ bool QualcommCameraHardware::initRecord()
 
     if (!mRecordHeap->initialized()) {
         mRecordHeap.clear();
+        mRecordHeap = NULL;
         LOGE("initRecord X: could not initialize record heap.");
         return false;
     }
@@ -4666,9 +4671,9 @@ status_t QualcommCameraHardware::setDIS() {
     video_dis_param_ctrl_t disCtrl;
 #endif
     bool ret = true;
-
-    LOGV("mDisEnabled = %d", mDisEnabled);
 #if 0
+    LOGV("mDisEnabled = %d", mDisEnabled);
+
     int video_frame_cbcroffset;
     video_frame_cbcroffset = PAD_TO_WORD(videoWidth * videoHeight);
     if(mCurrentTarget == TARGET_MSM8660)

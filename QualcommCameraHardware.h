@@ -506,6 +506,8 @@ private:
     bool native_set_parm(cam_ctrl_type type, uint16_t length, void *value, int *result);
     bool native_zoom_image(int fd, int srcOffset, int dstOffset, common_crop_t *crop);
 
+    status_t startInitialPreview();
+
     static wp<QualcommCameraHardware> singleton;
 
     /* These constants reflect the number of buffers that libmmcamera requires

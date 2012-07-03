@@ -1796,7 +1796,7 @@ static bool native_get_maxzoom(int camfd, void *pZm)
 static bool native_get_zoomratios(int camfd, void *pZr, int maxZoomSize)
 {
     LOGV("native_get_zoomratios E");
-#if 0
+
     struct msm_ctrl_cmd ctrlCmd;
     int16_t *zoomRatios = (int16_t *)pZr;
 
@@ -1813,13 +1813,11 @@ static bool native_get_zoomratios(int camfd, void *pZr, int maxZoomSize)
         LOGE("native_get_zoomratios: ioctl fd %d error %s",
              camfd,
              strerror(errno));
-#endif
+
         return false;
-#if 0
     }
     LOGV("native_get_zoomratios X");
     return true;
-#endif
 }
 
 static bool native_set_afmode(int camfd, isp3a_af_mode_t af_type)

@@ -278,7 +278,7 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_EXIT                         43
 #define CAMERA_GET_PARM_ZOOM                46  // from liboemcamera.so (307Kb version) disassembly
 #define CAMERA_GET_PARM_MAXZOOM             47
-#define CAMERA_GET_PARM_AF_SHARPNESS        48  // from liboemcamera.so disassembly
+#define CAMERA_GET_PARM_ZOOMRATIOS          48  // from TouchPad libcamera.so
 #define CAMERA_SET_PARM_LED_MODE            49
 #define CAMERA_SET_MOTION_ISO               50  // from liboemcamera.so disassembly
 #define CAMERA_AUTO_FOCUS_CANCEL            51  // (38) from liboemcamera.so disassembly
@@ -301,7 +301,6 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_STOP_RECORDING               59
 /* End of TAG */
 
-#define CAMERA_GET_PARM_ZOOMRATIOS            0  /* FIXME */
 #define CAMERA_SET_FPS_MODE                   55 /* FIXME */
 #define CAMERA_SET_PARM_SCENE_MODE            0  /* FIXME */
 #define CAMERA_SET_PARM_AEC_ROI               61 /* CHECKME */

@@ -2824,13 +2824,15 @@ bool QualcommCameraHardware::initPreview()
         LOGI("initPreview: snapshot mode completed.");
     }
     mInSnapshotModeWaitLock.unlock();
-
-    /*Temporary migrating the preview buffers to smi pool for 8x60 till the bug is resolved in the pmem_adsp pool*/
+#if 0
+    /* Temporary migrating the preview buffers to smi pool for 8x60 till the bug is resolved in the pmem_adsp pool */
     if(mCurrentTarget == TARGET_MSM8660)
+#endif
         pmem_region = "/dev/pmem_smipool";
+#if 0
     else
         pmem_region = "/dev/pmem_adsp";
-
+#endif
     int cnt = 0;
 
     mPreviewFrameSize = previewWidth * previewHeight * 3/2;

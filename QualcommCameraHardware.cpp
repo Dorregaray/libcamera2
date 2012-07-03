@@ -2783,6 +2783,9 @@ bool QualcommCameraHardware::initPreview()
     LOGV("%s E", __FUNCTION__);
     const char * pmem_region;
 
+    mParameters.getPreviewSize(&previewWidth, &previewHeight);
+    LOGV("initPreview: Got preview dimension as %d x %d ", previewWidth, previewHeight);
+
     mDimension.display_width = previewWidth;
     mDimension.display_height= previewHeight;
     mDimension.ui_thumbnail_width =
@@ -2800,7 +2803,8 @@ bool QualcommCameraHardware::initPreview()
          */
         videoWidth = mDimension.video_width;
         mDimension.video_height = videoHeight;
-        LOGI("initPreview : preview size=%dx%d videosize = %d x %d", previewWidth, previewHeight, videoWidth, videoHeight);
+        LOGI("initPreview : preview size=%dx%d videosize = %d x %d", previewWidth, previewHeight, 
+            videoWidth, videoHeight);
     }
 
     // See comments in deinitPreview() for why we have to wait for the frame
@@ -2821,19 +2825,22 @@ bool QualcommCameraHardware::initPreview()
     }
     mInSnapshotModeWaitLock.unlock();
 
-     /*Temporary migrating the preview buffers to smi pool for 8x60 till the bug is resolved in the pmem_adsp pool*/
+    /*Temporary migrating the preview buffers to smi pool for 8x60 till the bug is resolved in the pmem_adsp pool*/
     if(mCurrentTarget == TARGET_MSM8660)
         pmem_region = "/dev/pmem_smipool";
     else
         pmem_region = "/dev/pmem_adsp";
 
     int cnt = 0;
+
     mPreviewFrameSize = previewWidth * previewHeight * 3/2;
+    LOGV("mPreviewFrameSize = %d, width = %d, height = %d \n",
+        mPreviewFrameSize, previewWidth, previewHeight);
     int CbCrOffset = PAD_TO_WORD(previewWidth * previewHeight);
 
+#if 0
     //Pass the yuv formats, display dimensions,
     //so that vfe will be initialized accordingly.
-#if 0
     mDimension.display_luma_width = previewWidth;
     mDimension.display_luma_height = previewHeight;
     mDimension.display_chroma_width = previewWidth;
@@ -2855,7 +2862,39 @@ bool QualcommCameraHardware::initPreview()
     LOGV("mDimension.display_chroma_width = %d", mDimension.display_chroma_width);
     LOGV("mDimension.display_chroma_height = %d", mDimension.display_chroma_height);
 #endif
+
     dstOffset = 0;
+    //set DIS value to get the updated video width and height to calculate
+    //the required record buffer size
+    if(mVpeEnabled) {
+        bool status = setDIS();
+        if(status) {
+            LOGE("Failed to set DIS");
+            return false;
+        }
+    }
+
+    //Pass the original video width and height and get the required width
+    //and height for record buffer allocation
+    mDimension.video_width = videoWidth;
+    mDimension.video_height = videoHeight;
+
+    // mDimension will be filled with thumbnail_width, thumbnail_height,
+    // orig_picture_dx, and orig_picture_dy after this function call. We need to
+    // keep it for jpeg_encoder_encode.
+    cam_ctrl_dimension_t dimension = mDimension;
+    bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
+                               sizeof(cam_ctrl_dimension_t), &dimension);
+
+    if (dimension.orig_picture_dx != 0) {
+        mDimension.orig_picture_dx = dimension.orig_picture_dx;
+        mDimension.orig_picture_dy = dimension.orig_picture_dy;
+    }
+    if (dimension.thumbnail_width != 0) {
+        mDimension.thumbnail_width = dimension.thumbnail_width;
+        mDimension.thumbnail_height = dimension.thumbnail_height;
+    }
+
     mPreviewHeap = new PmemPool(pmem_region,
                                 MemoryHeapBase::READ_ONLY | MemoryHeapBase::NO_CACHING,
                                 mCameraControlFd,
@@ -2872,28 +2911,6 @@ bool QualcommCameraHardware::initPreview()
         LOGE("initPreview X: could not initialize Camera preview heap.");
         return false;
     }
-
-    //set DIS value to get the updated video width and height to calculate
-    //the required record buffer size
-    if(mVpeEnabled) {
-        bool status = setDIS();
-        if(status) {
-            LOGE("Failed to set DIS");
-            return false;
-        }
-    }
-
-    //Pass the original video width and height and get the required width
-    //and height for record buffer allocation
-
-    unsigned short orig_video_width = videoWidth;
-    unsigned short orig_video_height = videoHeight;
-
-    // mDimension will be filled with thumbnail_width, thumbnail_height,
-    // orig_picture_dx, and orig_picture_dy after this function call. We need to
-    // keep it for jpeg_encoder_encode.
-    bool ret = true/*native_set_parm(CAMERA_SET_PARM_DIMENSION,
-                               sizeof(cam_ctrl_dimension_t), &mDimension)*/;
 
     if ((mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
 
@@ -2928,8 +2945,9 @@ bool QualcommCameraHardware::initPreview()
             frame_parms.video_frame =  frames[kPreviewBufferCount - 1];
 
         LOGV ("initpreview before cam_frame thread carete , video frame  buffer=%lu fd=%d y_off=%d cbcr_off=%d frame_parms=%p\n",
-          (unsigned long)frame_parms.video_frame.buffer, frame_parms.video_frame.fd, frame_parms.video_frame.y_off,
-          frame_parms.video_frame.cbcr_off, &frame_parms);
+            (unsigned long)frame_parms.video_frame.buffer, frame_parms.video_frame.fd, frame_parms.video_frame.y_off,
+            frame_parms.video_frame.cbcr_off, &frame_parms);
+
         mFrameThreadRunning = !pthread_create(&mFrameThread,
                                               &attr,
                                               frame_thread,
@@ -3088,20 +3106,20 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
         mDimension.thumb_format = CAMERA_YUV_420_NV21_ADRENO;
     }
 
-    int orig_video_width = mDimension.video_width;
-    int orig_video_height = mDimension.video_height;
-
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
+    cam_ctrl_dimension_t dimension = mDimension;
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
-                               sizeof(cam_ctrl_dimension_t), &mDimension);
+                               sizeof(cam_ctrl_dimension_t), &dimension);
 
-    // restore video_width/video_height cleaned in native_set_parm
-    if (mDimension.video_width == 0 || mDimension.video_height == 0)
-    {
-        mDimension.video_width = orig_video_width;
-        mDimension.video_height = orig_video_height;
+    if (dimension.orig_picture_dx != 0) {
+        mDimension.orig_picture_dx = dimension.orig_picture_dx;
+        mDimension.orig_picture_dy = dimension.orig_picture_dy;
+    }
+    if (dimension.thumbnail_width != 0) {
+        mDimension.thumbnail_width = dimension.thumbnail_width;
+        mDimension.thumbnail_height = dimension.thumbnail_height;
     }
 
     if(!ret) {
@@ -3434,10 +3452,13 @@ status_t QualcommCameraHardware::startPreviewInternal()
     {
         Mutex::Autolock cameraRunningLock(&mCameraRunningLock);
         if(( mCurrentTarget != TARGET_MSM7630 ) &&
-                (mCurrentTarget != TARGET_QSD8250) && (mCurrentTarget != TARGET_MSM8660))
+                (mCurrentTarget != TARGET_QSD8250) && (mCurrentTarget != TARGET_MSM8660)) {
+            LOGV("Calling CAMERA_START_PREVIEW");
             mCameraRunning = native_start_preview(mCameraControlFd);
-        else
+        } else {
+            LOGV("Calling CAMERA_START_VIDEO");
             mCameraRunning = native_start_video(mCameraControlFd);
+        }
     }
 
     if(!mCameraRunning) {
@@ -3448,7 +3469,7 @@ status_t QualcommCameraHardware::startPreviewInternal()
         LINK_cam_frame_flush_free_video();
         mPreviewInitialized = false;
         mOverlayLock.lock();
-        mOverlay = NULL;
+        //mOverlay = NULL; /* do not NULL overlay */
         mOverlayLock.unlock();
         LOGE("startPreview X: native_start_preview failed!");
         return UNKNOWN_ERROR;

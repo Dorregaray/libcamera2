@@ -295,10 +295,10 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_GET_PARM_ISO                 62
 #define CAMERA_SET_PARM_FRONT_CAMERA_MODE   63  // from liboemcamera.so (1535Kb version) disassembly
 
-#define CAMERA_START_VIDEO                  56
-#define CAMERA_STOP_VIDEO                   57
-#define CAMERA_START_RECORDING              58
-#define CAMERA_STOP_RECORDING               59
+#define CAMERA_START_VIDEO                  57  // from TouchPad libcamera.so
+#define CAMERA_STOP_VIDEO                   58  // from TouchPad libcamera.so
+#define CAMERA_START_RECORDING              59  // from TouchPad libcamera.so
+#define CAMERA_STOP_RECORDING               60  // from TouchPad libcamera.so
 /* End of TAG */
 
 #define CAMERA_SET_FPS_MODE                   55 /* FIXME */

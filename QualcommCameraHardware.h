@@ -81,10 +81,10 @@ typedef struct {
 	unsigned short filler18;
 	unsigned short filler19;
 	unsigned short filler20;
-	unsigned short filler21;
-	unsigned short filler22;
-	unsigned short filler23;
-	unsigned short filler24;
+	unsigned short display_luma_width; //guess
+	unsigned short display_luma_height; //guess
+	unsigned short display_chroma_width; //guess
+	unsigned short display_chroma_height; //guess
 	unsigned short filler25;
 	unsigned short filler26;
 	unsigned short filler27;

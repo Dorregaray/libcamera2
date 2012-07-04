@@ -2838,7 +2838,6 @@ bool QualcommCameraHardware::initPreview()
         mPreviewFrameSize, previewWidth, previewHeight);
     int CbCrOffset = PAD_TO_WORD(previewWidth * previewHeight);
 
-#if 0
     //Pass the yuv formats, display dimensions,
     //so that vfe will be initialized accordingly.
     mDimension.display_luma_width = previewWidth;
@@ -2861,7 +2860,6 @@ bool QualcommCameraHardware::initPreview()
     LOGV("mDimension.display_luma_height = %d", mDimension.display_luma_height);
     LOGV("mDimension.display_chroma_width = %d", mDimension.display_chroma_width);
     LOGV("mDimension.display_chroma_height = %d", mDimension.display_chroma_height);
-#endif
 
     dstOffset = 0;
     //set DIS value to get the updated video width and height to calculate
@@ -3148,24 +3146,23 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
     // Snapshot
     mRawSize = rawWidth * rawHeight * 3 / 2;
     mCbCrOffsetRaw = PAD_TO_WORD(rawWidth * rawHeight);
-#if 0
+
     if(mPreviewFormat == CAMERA_YUV_420_NV21_ADRENO) {
         mRawSize = PAD_TO_4K(CEILING32(rawWidth) * CEILING32(rawHeight)) +
                             2 * (CEILING32(rawWidth/2) * CEILING32(rawHeight/2));
         mCbCrOffsetRaw = PAD_TO_4K(CEILING32(rawWidth) * CEILING32(rawHeight));
     }
-#endif
+
     if( mCurrentTarget == TARGET_MSM7627 )
         mJpegMaxSize = CEILING16(rawWidth) * CEILING16(rawHeight) * 3 / 2;
     else {
         mJpegMaxSize = rawWidth * rawHeight * 3 / 2;
-#if 0
+
         if(mPreviewFormat == CAMERA_YUV_420_NV21_ADRENO){
             mJpegMaxSize =
                PAD_TO_4K(CEILING32(rawWidth) * CEILING32(rawHeight)) +
                     2 * (CEILING32(rawWidth/2) * CEILING32(rawHeight/2));
         }
-#endif
     }
 
     //For offline jpeg hw encoder, jpeg encoder will provide us the

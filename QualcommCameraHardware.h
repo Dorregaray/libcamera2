@@ -106,6 +106,17 @@ typedef struct {
 	int16_t  altitude;   /* meters                          */
 } camera_position_type;
 
+typedef struct {
+	unsigned short dis_enable;
+	unsigned short filler1;
+	unsigned short video_rec_width;
+	unsigned short filler2;
+	unsigned short video_rec_height;
+	unsigned short filler3;
+	unsigned short output_cbcr_offset;
+	unsigned short filler4;
+} video_dis_param_ctrl_t;
+
 typedef uint8_t jpeg_event_t;
 
 typedef enum {
@@ -301,9 +312,10 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_STOP_RECORDING               60  // from TouchPad libcamera.so
 /* End of TAG */
 
+#define CAMERA_SET_VIDEO_DIS_PARAMS           61 // from TouchPad libcamera.so
 #define CAMERA_SET_FPS_MODE                   55 /* FIXME */
 #define CAMERA_SET_PARM_SCENE_MODE            0  /* FIXME */
-#define CAMERA_SET_PARM_AEC_ROI               61 /* CHECKME */
+#define CAMERA_SET_PARM_AEC_ROI               61 /* FIXME */
 #define CAMERA_SET_CAF                        62 /* CHECKME */
 #define CAMERA_SET_PARM_BL_DETECTION_ENABLE   63 /* CHECKME */
 #define CAMERA_SET_PARM_SNOW_DETECTION_ENABLE 64 /* CHECKME */

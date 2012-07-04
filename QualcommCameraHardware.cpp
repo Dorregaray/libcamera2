@@ -4700,11 +4700,10 @@ bool QualcommCameraHardware::initRecord()
 
 status_t QualcommCameraHardware::setDIS() {
     LOGV("setDIS E");
-#if 0
     video_dis_param_ctrl_t disCtrl;
-#endif
+
     bool ret = true;
-#if 0
+
     LOGV("mDisEnabled = %d", mDisEnabled);
 
     int video_frame_cbcroffset;
@@ -4716,11 +4715,12 @@ status_t QualcommCameraHardware::setDIS() {
     disCtrl.video_rec_width = videoWidth;
     disCtrl.video_rec_height = videoHeight;
     disCtrl.output_cbcr_offset = video_frame_cbcroffset;
+    disCtrl.filler4 = 4;
 
     ret = native_set_parm(CAMERA_SET_VIDEO_DIS_PARAMS,
                        sizeof(disCtrl), &disCtrl);
     LOGV("setDIS X (%d)", ret);
-#endif
+
     return ret ? NO_ERROR : UNKNOWN_ERROR;
 }
 

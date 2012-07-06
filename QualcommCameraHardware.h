@@ -487,6 +487,11 @@ public:
     virtual bool useOverlay();
     virtual status_t setOverlay(const sp<Overlay> &overlay);
 
+    /* For compatibility with TouchPad binary libcamera */
+    virtual void stub1() {};
+    virtual void stub2() {};
+    virtual void stopSnapshot() {};
+
     static sp<CameraHardwareInterface> createInstance();
     static sp<QualcommCameraHardware> getInstance();
 

@@ -148,6 +148,10 @@ public:
     virtual bool         useOverlay() {return false;}
     virtual status_t     setOverlay(const sp<Overlay> &overlay) {return BAD_VALUE;}
 
+    /* For compatibility with TouchPad libcamera */
+    virtual void         stub1() = 0;
+    virtual void         stub2() = 0;
+
     /**
      * Stop a previously started preview.
      */
@@ -206,8 +210,12 @@ public:
      */
     virtual status_t    cancelPicture() = 0;
 
+    /* For compatibility with TouchPad libcamera */
+    virtual void        stopSnapshot() = 0;
+
     /** Set the camera parameters. */
     virtual status_t    setParameters(const CameraParameters& params) = 0;
+
 
     /** Return the camera parameters. */
     virtual CameraParameters  getParameters() const = 0;

@@ -3664,12 +3664,10 @@ status_t QualcommCameraHardware::cancelAutoFocusInternal()
         return NO_ERROR;
     }
 
-#if 0
     if (mAutoFocusFd < 0) {
         LOGV("cancelAutoFocusInternal X: not in progress");
         return NO_ERROR;
     }
-#endif
 
     status_t rc = NO_ERROR;
     status_t err;
@@ -5919,8 +5917,8 @@ status_t QualcommCameraHardware::setSelectableZoneAf(const CameraParameters& par
 status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
 {
     /* Don't know the AEC_ROI_* values */
-#if 0
     if(sensorType->hasAutoFocusSupport){
+#if 0
         int xAec, yAec, xAf, yAf;
 
         params.getTouchIndexAec(&xAec, &yAec);
@@ -5976,8 +5974,8 @@ status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
         }
         LOGE("Invalid Touch AF/AEC value: %s", (str == NULL) ? "NULL" : str);
         return BAD_VALUE;
-    }
 #endif
+    }
     return NO_ERROR;
 }
 

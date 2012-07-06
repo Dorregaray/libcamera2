@@ -1,0 +1,30 @@
+This is the libcamera2 port for TouchPad
+
+----------------
+
+Instructions
+
+1. You need to have the CM9 sources patched with several patches from
+   gerrit. Use the following script to patch the sources:
+   http://pastebin.com/8igJK9WF
+
+2. Download the camerahal sources to the ~/android/system/device/hp/tenderloin
+   directory.  
+
+3. Download the libcamera2 sources to the ~/android/system/device/hp/tenderloin
+   directory.  
+
+3. Patch the BoardConfig.mk and device_tenderloin.mk with the following 
+   changes: http://pastebin.com/g0YaimdL
+
+4. Obtain the libcamera.so and liboemcamera.so from CM7a2.1 build and replace
+   the ones from CM9 in: ~/android/system/vendor/hp/tenderloin/proprietary/lib
+   The libraries used in CM9 are incorrect and won't load thus there's need to
+   use the proper ones from CM7.
+
+5. Run "make clean" before running the first build.
+
+6. Run "brunch tenderloin" to make a build.
+
+7. On the device rename libcamera2.so to libcamera.so in /system/lib to use the
+   compiled library instead of the binary one.

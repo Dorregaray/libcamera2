@@ -2675,7 +2675,7 @@ void QualcommCameraHardware::runVideoThread(void *data)
             record_buffers_tracking_flag[offset] = true;
 
             /* Extract the timestamp of this frame */
-            nsecs_t timeStamp =systemTime();
+	    nsecs_t timeStamp = nsecs_t(vframe->ts.tv_sec)*1000000000LL + vframe->ts.tv_nsec;
 
             // dump frames for test purpose
 #ifdef DUMP_VIDEO_FRAMES

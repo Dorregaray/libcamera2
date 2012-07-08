@@ -3682,16 +3682,6 @@ status_t QualcommCameraHardware::autoFocus()
     Mutex::Autolock l(&mLock);
 
     if(!sensorType->hasAutoFocusSupport){
-#if 0 /* the callback hangs, just return NO_ERROR like binary libcamera does */
-        bool status = false;
-        mCallbackLock.lock();
-        bool autoFocusEnabled = mNotifyCallback && (mMsgEnabled & CAMERA_MSG_FOCUS);
-        notify_callback cb = mNotifyCallback;
-        void *data = mCallbackCookie;
-        mCallbackLock.unlock();
-        if (autoFocusEnabled)
-            cb(CAMERA_MSG_FOCUS, status, 0, data);
-#endif
         LOGV("autoFocus X");
         return NO_ERROR;
     }

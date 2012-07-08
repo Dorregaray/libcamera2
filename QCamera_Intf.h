@@ -210,6 +210,7 @@ typedef struct {
   uint32_t bestshot_reconfigure;
 }cam_prop_t;
 
+#if 0 /* TODO: our libcamera needs 88bytes while this definition has not 420, fix 88bytes definitions */
 typedef struct {
   uint16_t video_width;         /* Video width seen by VFE could be different than orig. Ex. DIS */
   uint16_t video_height;        /* Video height seen by VFE */
@@ -269,6 +270,55 @@ typedef struct {
   cam_frame_len_offset_t thumb_frame_offset;
   uint32_t channel_interface_mask;
 } cam_ctrl_dimension_t;
+#else
+typedef struct {
+  //Size: 88 bytes = 44 short
+  unsigned short video_width;
+  unsigned short video_height;
+  unsigned short picture_width;
+  unsigned short picture_height;
+  unsigned short display_width;
+  unsigned short display_height;
+  unsigned short orig_picture_dx;
+  unsigned short orig_picture_dy;
+  unsigned short ui_thumbnail_width;
+  unsigned short ui_thumbnail_height;
+  unsigned short thumbnail_width;
+  unsigned short thumbnail_height;
+  unsigned short raw_picture_height;
+  unsigned short raw_picture_width;
+  unsigned short filler7;
+  unsigned short filler8;
+  unsigned short filler9;
+  unsigned short filler10;
+  unsigned short prev_format; //guesss
+  unsigned short filler12;
+  unsigned short filler13;
+  unsigned short filler14;
+  unsigned short main_img_format; //guess
+  unsigned short enc_format; //guess
+  unsigned short thumb_format; //guess
+  unsigned short filler18;
+  unsigned short filler19;
+  unsigned short filler20;
+  unsigned short display_luma_width; //guess
+  unsigned short display_luma_height; //guess
+  unsigned short display_chroma_width; //guess
+  unsigned short display_chroma_height; //guess
+  unsigned short filler25;
+  unsigned short filler26;
+  unsigned short filler27;
+  unsigned short filler28;
+  unsigned short filler29;
+  unsigned short filler30;
+  unsigned short filler31;
+  unsigned short filler32;
+  unsigned short filler33;
+  unsigned short filler34;
+  unsigned short filler35;
+  unsigned short filler36;
+} cam_ctrl_dimension_t;
+#endif
 
 /* Add enumenrations at the bottom but before MM_CAMERA_PARM_MAX */
 typedef enum {
@@ -761,6 +811,7 @@ struct fifo_node
   void *f;
 };
 
+#if 0 /* TODO: change the implementation of enqueue/dequeue in QualcommCameraHardware.h */
 struct fifo_queue
 {
   int num_of_frames;
@@ -770,6 +821,15 @@ struct fifo_queue
   pthread_cond_t wait;
   char* name;
 };
+#else
+struct fifo_queue {
+  int num_of_frames;
+  int front;
+  struct fifo_node *node;
+  pthread_mutex_t mut;
+  pthread_cond_t wait;
+};
+#endif
 
 typedef struct {
   uint32_t buf_len;

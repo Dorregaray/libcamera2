@@ -67,9 +67,9 @@ extern "C" {
 
 #if 0
 #include <camera.h>
-#include <camframe.h>
+#include <cam_fifo.h>
 #include <liveshot.h>
-#include <mm-still/jpeg/jpege.h>
+#include <jpege.h>
 #include <jpeg_encoder.h>
 #endif
 
@@ -86,8 +86,6 @@ typedef int liveshot_status;
 // Number of video buffers held by kernal (initially 1,2 &3)
 #define ACTIVE_VIDEO_BUFFERS 3
 
-#define PAD_TO_2K(x) (((x)+2047)& ~2047)
-#define PAD_TO_4K(x) (((x)+4095)& ~4095)
 #define APP_ORIENTATION 90
 
 #define LOGV LOGD
@@ -619,11 +617,11 @@ static void dump_dimensions(cam_ctrl_dimension_t *t)
     LOGV("video_width: %d, video_height: %d, picture_width: %d, picture_height: %d, "
          "display_width: %d, display_height: %d, orig_picture_dx: %d, orig_picture_dy: %d, "
          "ui_thumbnail_width: %d, ui_thumbnail_height:%d, thumbnail_width: %d, thumbnail_height: %d, "
-         "raw_picture_height: %d, raw_picture_width: %d, filler7: %d, filler8: %d",
+         "raw_picture_height: %d, raw_picture_width: %d",
          t->video_width, t->video_height, t->picture_width, t->picture_height,
          t->display_width, t->display_height, t->orig_picture_dx, t->orig_picture_dy,
          t->ui_thumbnail_width, t->ui_thumbnail_height, t->thumbnail_width, t->thumbnail_height,
-         t->raw_picture_height, t->raw_picture_width, t->filler7, t->filler8);
+         t->raw_picture_height, t->raw_picture_width);
 }
 
 #define country_number (sizeof(country_numeric) / sizeof(country_map))
@@ -1977,7 +1975,6 @@ static bool native_start_snapshot(int camfd)
 
 static bool native_start_liveshot(int camfd)
 {
-#if 0
     int ret;
     struct msm_ctrl_cmd ctrlCmd;
     ctrlCmd.timeout_ms = 5000;
@@ -1987,12 +1984,9 @@ static bool native_start_liveshot(int camfd)
     ctrlCmd.resp_fd = camfd;
     if ((ret = ioctl(camfd, MSM_CAM_IOCTL_CTRL_COMMAND, &ctrlCmd)) < 0) {
         LOGE("native_start_liveshot: ioctl failed. ioctl return value is %d ", ret);
-#endif
         return false;
-#if 0
     }
     return true;
-#endif
 }
 
 static bool native_start_raw_snapshot(int camfd)
@@ -2180,7 +2174,7 @@ static void addExifTag(exif_tag_id_t tagid, exif_tag_type_t type,
     }
 
     int index = exif_table_numEntries;
-    exif_data[index].tagid = tagid;
+    exif_data[index].tag_id = tagid;
 	exif_data[index].tag_entry.type = type;
 	exif_data[index].tag_entry.count = count;
 	exif_data[index].tag_entry.copy = copy;
@@ -2822,15 +2816,13 @@ bool QualcommCameraHardware::initPreview()
         LOGI("initPreview: snapshot mode completed.");
     }
     mInSnapshotModeWaitLock.unlock();
-#if 0
+
     /* Temporary migrating the preview buffers to smi pool for 8x60 till the bug is resolved in the pmem_adsp pool */
     if(mCurrentTarget == TARGET_MSM8660)
-#endif
         pmem_region = "/dev/pmem_smipool";
-#if 0
     else
         pmem_region = "/dev/pmem_adsp";
-#endif
+
     int cnt = 0;
 
     mPreviewFrameSize = previewWidth * previewHeight * 3/2;
@@ -2880,18 +2872,8 @@ bool QualcommCameraHardware::initPreview()
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
-    cam_ctrl_dimension_t dimension = mDimension;
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
-                               sizeof(cam_ctrl_dimension_t), &dimension);
-
-    if (dimension.orig_picture_dx != 0) {
-        mDimension.orig_picture_dx = dimension.orig_picture_dx;
-        mDimension.orig_picture_dy = dimension.orig_picture_dy;
-    }
-    if (dimension.thumbnail_width != 0) {
-        mDimension.thumbnail_width = dimension.thumbnail_width;
-        mDimension.thumbnail_height = dimension.thumbnail_height;
-    }
+                               sizeof(cam_ctrl_dimension_t), &mDimension);
 
     mPreviewHeap = new PmemPool(pmem_region,
                                 MemoryHeapBase::READ_ONLY | MemoryHeapBase::NO_CACHING,
@@ -2985,23 +2967,22 @@ bool QualcommCameraHardware::initRawSnapshot()
 {
     LOGV("initRawSnapshot E");
     const char * pmem_region;
-    cam_ctrl_dimension_t dimension = mDimension;
 
     //get width and height from Dimension Object
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
-                               sizeof(cam_ctrl_dimension_t), &dimension);
+                               sizeof(cam_ctrl_dimension_t), &mDimension);
 
     if(!ret){
         LOGE("initRawSnapshot X: failed to set dimension");
         return false;
     }
-    int rawSnapshotSize = dimension.raw_picture_height *
-                           dimension.raw_picture_width;
+    int rawSnapshotSize = mDimension.raw_picture_height *
+                           mDimension.raw_picture_width;
 
     LOGV("raw_snapshot_buffer_size = %d, raw_picture_height = %d, "\
          "raw_picture_width = %d",
-          rawSnapshotSize, dimension.raw_picture_height,
-          dimension.raw_picture_width);
+          rawSnapshotSize, mDimension.raw_picture_height,
+          mDimension.raw_picture_width);
 
     if (mRawSnapShotPmemHeap != NULL) {
         LOGV("initRawSnapshot: clearing old mRawSnapShotPmemHeap.");
@@ -3107,18 +3088,8 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
-    cam_ctrl_dimension_t dimension = mDimension;
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
-                               sizeof(cam_ctrl_dimension_t), &dimension);
-
-    if (dimension.orig_picture_dx != 0) {
-        mDimension.orig_picture_dx = dimension.orig_picture_dx;
-        mDimension.orig_picture_dy = dimension.orig_picture_dy;
-    }
-    if (dimension.thumbnail_width != 0) {
-        mDimension.thumbnail_width = dimension.thumbnail_width;
-        mDimension.thumbnail_height = dimension.thumbnail_height;
-    }
+                               sizeof(cam_ctrl_dimension_t), &mDimension);
 
     if(!ret) {
         LOGE("initRaw X: failed to set dimension");
@@ -5757,8 +5728,8 @@ status_t QualcommCameraHardware::setSkinToneEnhancement(const CameraParameters& 
               mSkinToneEnhancement = skinToneValue;
               mParameters.set("skinToneEnhancement", skinToneValue);
 
-              bool ret = true; /*native_set_parm(CAMERA_SET_SCE_FACTOR, sizeof(mSkinToneEnhancement),
-                             (void *)&mSkinToneEnhancement);*/
+              bool ret = native_set_parm(CAMERA_SET_SCE_FACTOR, sizeof(mSkinToneEnhancement),
+                             (void *)&mSkinToneEnhancement);
               return ret ? NO_ERROR : UNKNOWN_ERROR;
         } else {
               return NO_ERROR;
@@ -5918,7 +5889,6 @@ status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
 {
     /* Don't know the AEC_ROI_* values */
     if(sensorType->hasAutoFocusSupport){
-#if 0
         int xAec, yAec, xAf, yAf;
 
         params.getTouchIndexAec(&xAec, &yAec);
@@ -5974,7 +5944,6 @@ status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
         }
         LOGE("Invalid Touch AF/AEC value: %s", (str == NULL) ? "NULL" : str);
         return BAD_VALUE;
-#endif
     }
     return NO_ERROR;
 }

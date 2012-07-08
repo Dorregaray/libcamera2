@@ -27,6 +27,7 @@
 
 extern "C" {
 #include <linux/android_pmem.h>
+#include "QCamera_Intf.h"
 #include "msm_camera.h"
 }
 // Extra propriatary stuff (mostly from CM)
@@ -46,58 +47,6 @@ typedef struct {
     unsigned int out2_h;
     uint8_t update_flag; 
 } common_crop_t;
-
-typedef uint8_t cam_ctrl_type;
-
-#define CEILING16(x) (x&0xfffffff0)
-#define CEILING32(x) (x) /* FIXME */
-typedef struct {
-	//Size: 88 bytes = 44 short
-	unsigned short video_width;
-	unsigned short video_height;
-	unsigned short picture_width;
-	unsigned short picture_height;
-	unsigned short display_width;
-	unsigned short display_height;
-	unsigned short orig_picture_dx;
-	unsigned short orig_picture_dy;
-	unsigned short ui_thumbnail_width;
-	unsigned short ui_thumbnail_height;
-	unsigned short thumbnail_width;
-	unsigned short thumbnail_height;
-	unsigned short raw_picture_height;
-	unsigned short raw_picture_width;
-	unsigned short filler7;
-	unsigned short filler8;
-	unsigned short filler9;
-	unsigned short filler10;
-	unsigned short prev_format; //guesss
-	unsigned short filler12;
-	unsigned short filler13;
-	unsigned short filler14;
-	unsigned short main_img_format; //guess
-	unsigned short enc_format; //guess
-	unsigned short thumb_format; //guess
-	unsigned short filler18;
-	unsigned short filler19;
-	unsigned short filler20;
-	unsigned short display_luma_width; //guess
-	unsigned short display_luma_height; //guess
-	unsigned short display_chroma_width; //guess
-	unsigned short display_chroma_height; //guess
-	unsigned short filler25;
-	unsigned short filler26;
-	unsigned short filler27;
-	unsigned short filler28;
-	unsigned short filler29;
-	unsigned short filler30;
-	unsigned short filler31;
-	unsigned short filler32;
-	unsigned short filler33;
-	unsigned short filler34;
-	unsigned short filler35;
-	unsigned short filler36;
-} cam_ctrl_dimension_t;
 
 typedef struct {
 	uint32_t timestamp;  /* seconds since 1/6/1980          */
@@ -131,14 +80,6 @@ typedef enum {
 	CAMERA_WB_SHADE,
 	CAMERA_WB_MAX_PLUS_1
 } camera_wb_type;
-
-typedef enum {
-    CAMERA_ANTIBANDING_OFF,
-    CAMERA_ANTIBANDING_60HZ,
-    CAMERA_ANTIBANDING_50HZ,
-    CAMERA_ANTIBANDING_AUTO,
-    CAMERA_MAX_ANTIBANDING,
-} camera_antibanding_type;
 
 typedef enum {
     CAMERA_BESTSHOT_OFF,
@@ -178,29 +119,6 @@ enum {
 	LED_MODE_ON,
 	LED_MODE_AUTO,
 	LED_MODE_TORCH
-};
-
-typedef enum {
-	CAMERA_ISO_AUTO,
-	CAMERA_ISO_DEBLUR,
-	CAMERA_ISO_100,
-	CAMERA_ISO_200,
-	CAMERA_ISO_400,
-	CAMERA_ISO_800,
-	CAMERA_ISO_1600,
-} camera_iso_mode_type;
-
-struct fifo_queue {
-	int num_of_frames;
-	int front;
-	struct fifo_node *node;
-	pthread_mutex_t mut;
-	pthread_cond_t wait;
-};
-
-struct fifo_node {
-	struct msm_frame *f;
-	struct fifo_node *next;
 };
 
 void enqueue(struct fifo_queue *queue, struct fifo_node *node) {
@@ -244,89 +162,8 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_DEF_CONTRAST 8
 #define CAMERA_DEF_SATURATION 6
 
-/* TAG JB 01/20/2010 : From the disassembly of both drem/sapphire + legend camera libraries */
-#define CAMERA_SET_PARM_DIMENSION           1
-#define CAMERA_SET_PARM_ZOOM                2
-#define CAMERA_SET_PARM_SENSOR_POSITION     3   // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_FOCUS_RECT          4   // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_LUMA_ADAPTATION     5   // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_CONTRAST            6
-#define CAMERA_SET_PARM_BRIGHTNESS          7
-#define CAMERA_SET_PARM_EXPOSURE_COMPENSATION   8   // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_SHARPNESS           9   // (4) from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_HUE                 10  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_SATURATION          11
-#define CAMERA_SET_PARM_EXPOSURE            12
-#define CAMERA_SET_PARM_AUTO_FOCUS          13
-#define CAMERA_SET_PARM_WB                  14
-#define CAMERA_SET_PARM_EFFECT              15
-#define CAMERA_SET_PARM_FPS                 16  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_FLASH               17  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_NIGHTSHOT_MODE      18  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_REFLECT             19  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_PREVIEW_MODE        20  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_ANTIBANDING         21
-#define CAMERA_SET_PARM_RED_EYE_REDUCTION   22  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_FOCUS_STEP          23  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_EXPOSURE_METERING   24  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_AUTO_EXPOSURE_MODE  25  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_ISO                 26
-#define CAMERA_SET_PARM_BESTSHOT_MODE       27  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_PREVIEW_FPS         29  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_AF_MODE             30  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_HISTOGRAM           31  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_FLASH_STATE         32  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_FRAME_TIMESTAMP     33  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_STROBE_FLASH        34  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_FPS_LIST            35  // from liboemcamera.so disassembly
-#define CAMERA_SET_PARM_HJR                 36
-#define CAMERA_SET_PARM_ROLLOFF             37
-#define CAMERA_STOP_PREVIEW                 38
-#define CAMERA_START_PREVIEW                39
-#define CAMERA_START_SNAPSHOT               40
-#define CAMERA_START_RAW_SNAPSHOT           41
-#define CAMERA_STOP_SNAPSHOT                42
-#define CAMERA_EXIT                         43
-#define CAMERA_GET_PARM_ZOOM                46  // from liboemcamera.so (307Kb version) disassembly
-#define CAMERA_GET_PARM_MAXZOOM             47
-#define CAMERA_GET_PARM_ZOOMRATIOS          48  // from TouchPad libcamera.so
-#define CAMERA_SET_PARM_LED_MODE            49
-#define CAMERA_SET_MOTION_ISO               50  // from liboemcamera.so disassembly
-#define CAMERA_AUTO_FOCUS_CANCEL            51  // (38) from liboemcamera.so disassembly
-#define CAMERA_GET_PARM_FOCUS_STEP          52  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_ENABLE_AFD                   53  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_PREPARE_SNAPSHOT             54
-#define CAMERA_SET_PARM_COORDINATE          55  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_SET_AWB_CALIBRATION          56  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_SET_PARM_LA_MODE             57  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_SET_PARM_AE_COORDINATE       58  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_GET_PARM_FOCAL_LENGTH        59  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_GET_PARM_HORIZONTAL_VIEW_ANGLE 60  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_GET_PARM_VERTICAL_VIEW_ANGLE 61  // from liboemcamera.so (1535Kb version) disassembly
-#define CAMERA_GET_PARM_ISO                 62
-#define CAMERA_SET_PARM_FRONT_CAMERA_MODE   63  // from liboemcamera.so (1535Kb version) disassembly
+#define CAMERA_SET_PARM_SCENE_MODE 0  /* FIXME */
 
-#define CAMERA_START_VIDEO                  57  // from TouchPad libcamera.so
-#define CAMERA_STOP_VIDEO                   58  // from TouchPad libcamera.so
-#define CAMERA_START_RECORDING              59  // from TouchPad libcamera.so
-#define CAMERA_STOP_RECORDING               60  // from TouchPad libcamera.so
-/* End of TAG */
-
-#define CAMERA_SET_VIDEO_DIS_PARAMS           61 // from TouchPad libcamera.so
-#define CAMERA_SET_FPS_MODE                   55 /* FIXME */
-#define CAMERA_SET_PARM_SCENE_MODE            0  /* FIXME */
-#define CAMERA_SET_PARM_AEC_ROI               61 /* FIXME */
-#define CAMERA_SET_CAF                        62 /* CHECKME */
-#define CAMERA_SET_PARM_BL_DETECTION_ENABLE   63 /* CHECKME */
-#define CAMERA_SET_PARM_SNOW_DETECTION_ENABLE 64 /* CHECKME */
-#define CAMERA_SET_PARM_AF_ROI                65 /* CHECKME */
-#define CAMERA_START_LIVESHOT                 0  /* FIXME */
-
-
-#define CAM_CTRL_SUCCESS 1
-#define CAM_CTRL_INVALID_PARM 2 /* FIXME */
-
-#define PAD_TO_WORD(x) ((x&1) ? x+1 : x)
 #define JPEG_EVENT_DONE 0 /* useless */
 
 
@@ -367,43 +204,6 @@ struct cam_frame_start_parms {
 #define EXIFTAGID_EXIF_CAMERA_MODEL       0x220110
 #define EXIFTAGID_EXIF_DATE_TIME_ORIGINAL 0x3A9003
 #define EXIFTAGID_EXIF_DATE_TIME          0x3B9004
-typedef unsigned int exif_tag_id_t;
-
-#define EXIF_RATIONAL 5
-#define EXIF_ASCII 2
-#define EXIF_BYTE 1
-typedef unsigned int exif_tag_type_t;
-
-typedef struct {
-    int val;
-    int otherval;
-} rat_t;
-
-typedef union {
-    char * _ascii; /* At byte 16 relative to exif_tag_entry_t */
-    rat_t * _rats;
-    rat_t  _rat;
-    uint8_t _byte;
-} exif_tag_data_t;
-
-/* The entire exif_tag_entry_t struct must be 24 bytes in length */
-typedef struct {
-    exif_tag_type_t type;
-    uint32_t copy;
-    uint32_t count;
-    exif_tag_data_t data;
-} exif_tag_entry_t;
-
-typedef struct {
-    exif_tag_id_t tagid;
-    exif_tag_entry_t tag_entry;
-} exif_tags_info_t;
-
-enum {
-    CAMERA_YUV_420_NV12,
-    CAMERA_YUV_420_NV21,
-    CAMERA_YUV_420_NV21_ADRENO
-};
 
 typedef enum {
     AUTO,

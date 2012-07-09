@@ -455,6 +455,7 @@ private:
 
     int mSnapshotFormat;
     bool mFirstFrame;
+    void hasAutoFocusSupport();
     void filterPictureSizes();
     void filterPreviewSizes();
     void storeTargetType();
@@ -568,6 +569,7 @@ private:
     int kPreviewBufferCountActual;
     int previewWidth, previewHeight;
     bool mSnapshotDone;
+    bool mHasAutoFocusSupport;
     int videoWidth, videoHeight;
 
     bool mDisEnabled;

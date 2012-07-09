@@ -1062,6 +1062,7 @@ QualcommCameraHardware::QualcommCameraHardware()
       mCallbackCookie(0),
       mDebugFps(0),
       mSnapshotDone(0),
+      mHasAutoFocusSupport(0),
       mDisEnabled(0),
       mRotation(0),
       mResetOverlayCrop(false),
@@ -1141,6 +1142,14 @@ QualcommCameraHardware::QualcommCameraHardware()
     LOGV("constructor EX");
 }
 
+void QualcommCameraHardware::hasAutoFocusSupport(){
+    if(!sensorType->hasAutoFocusSupport){
+        LOGE("AutoFocus is not supported");
+        mHasAutoFocusSupport = false;
+    }else {
+        mHasAutoFocusSupport = true;
+    }
+}
 
 void QualcommCameraHardware::filterPreviewSizes(){
     LOGV("%s E", __FUNCTION__);
@@ -1238,7 +1247,7 @@ void QualcommCameraHardware::initDefaultParameters()
     mDimension.orig_picture_dy = mDimension.ui_thumbnail_height;
 
     findSensorType();
-
+    hasAutoFocusSupport();
     //Disable DIS for Web Camera
     if(!strcmp(sensorType->name, "ov7692"))
         mDisEnabled = 0;
@@ -1266,7 +1275,7 @@ void QualcommCameraHardware::initDefaultParameters()
 
         flash_values = create_values_str(
             flash, sizeof(flash) / sizeof(str_map));
-        if(sensorType->hasAutoFocusSupport){
+        if(mHasAutoFocusSupport){
             focus_mode_values = create_values_str(
                     focus_modes, sizeof(focus_modes) / sizeof(str_map));
         }
@@ -1280,7 +1289,7 @@ void QualcommCameraHardware::initDefaultParameters()
             skinToneEnhancement_values = create_values_str(
                 skinToneEnhancement,sizeof(skinToneEnhancement)/sizeof(str_map));
         }
-        if(sensorType->hasAutoFocusSupport){
+        if(mHasAutoFocusSupport){
             touchafaec_values = create_values_str(
                 touchafaec,sizeof(touchafaec)/sizeof(str_map));
         }
@@ -1325,12 +1334,12 @@ void QualcommCameraHardware::initDefaultParameters()
                 scenedetect, sizeof(scenedetect) / sizeof(str_map));
         }
 
-        if(sensorType->hasAutoFocusSupport && supportsSelectableZoneAf()){
+        if(mHasAutoFocusSupport && supportsSelectableZoneAf()){
             selectable_zone_af_values = create_values_str(
                 selectable_zone_af, sizeof(selectable_zone_af) / sizeof(str_map));
         }
 
-        if(sensorType->hasAutoFocusSupport && supportsFaceDetection()) {
+        if(mHasAutoFocusSupport && supportsFaceDetection()) {
             facedetection_values = create_values_str(
                 facedetection, sizeof(facedetection) / sizeof(str_map));
         }
@@ -3635,7 +3644,7 @@ status_t QualcommCameraHardware::cancelAutoFocusInternal()
 {
     LOGV("cancelAutoFocusInternal E");
 
-    if(!sensorType->hasAutoFocusSupport){
+    if(!mHasAutoFocusSupport){
         LOGV("cancelAutoFocusInternal X");
         return NO_ERROR;
     }
@@ -3686,7 +3695,7 @@ status_t QualcommCameraHardware::autoFocus()
     LOGV("autoFocus E");
     Mutex::Autolock l(&mLock);
 
-    if(!sensorType->hasAutoFocusSupport){
+    if(!mHasAutoFocusSupport){
        /*
         * If autofocus is not supported HAL defaults
         * focus mode to infinity and supported mode to
@@ -5867,7 +5876,7 @@ status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& param
 
 status_t QualcommCameraHardware::setSelectableZoneAf(const CameraParameters& params)
 {
-    if(sensorType->hasAutoFocusSupport && supportsSelectableZoneAf()) {
+    if(mHasAutoFocusSupport && supportsSelectableZoneAf()) {
         const char *str = params.get(CameraParameters::KEY_SELECTABLE_ZONE_AF);
         if (str != NULL) {
             int32_t value = attr_lookup(selectable_zone_af, sizeof(selectable_zone_af) / sizeof(str_map), str);
@@ -5887,7 +5896,7 @@ status_t QualcommCameraHardware::setSelectableZoneAf(const CameraParameters& par
 status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
 {
     /* Don't know the AEC_ROI_* values */
-    if(sensorType->hasAutoFocusSupport){
+    if(mHasAutoFocusSupport){
         int xAec, yAec, xAf, yAf;
 
         params.getTouchIndexAec(&xAec, &yAec);
@@ -6211,7 +6220,7 @@ status_t QualcommCameraHardware::setFocusMode(const CameraParameters& params)
                                     sizeof(focus_modes) / sizeof(str_map), str);
         if (value != NOT_FOUND) {
             mParameters.set(CameraParameters::KEY_FOCUS_MODE, str);
-            if (sensorType->hasAutoFocusSupport) {
+            if (mHasAutoFocusSupport) {
                 int cafSupport = FALSE;
                 if(!strcmp(str, CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO)){
                     cafSupport = TRUE;

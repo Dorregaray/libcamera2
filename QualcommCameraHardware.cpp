@@ -334,6 +334,10 @@ static int kRecordBufferCount;
  */
 static bool mVpeEnabled;
 
+static int HAL_numOfCameras = 0;
+static camera_info_t HAL_cameraInfo[MSM_MAX_CAMERA_SENSORS];
+static int HAL_currentCameraId;
+
 namespace android {
 
 static const int PICTURE_FORMAT_JPEG = 1;
@@ -4163,6 +4167,7 @@ status_t QualcommCameraHardware::sendCommand(int32_t command, int32_t arg1,
 extern "C" sp<CameraHardwareInterface> openCameraHardware()
 {
     LOGI("openCameraHardware: call createInstance");
+    parameter_string_initialized = false;
     return QualcommCameraHardware::createInstance();
 }
 
@@ -6840,13 +6845,10 @@ void QualcommCameraHardware::encodeData() {
     LOGV("encodeData: X");
 }
 
-static struct CameraInfo HAL_cameraInfo[MSM_MAX_CAMERA_SENSORS];
-static int HAL_numOfCameras = 0;
-
-#define CAMERA_MODE_2D 0
-#define CAMERA_MODE_3D 1
 void QualcommCameraHardware::getCameraInfo()
 {
+#define CAMERA_MODE_2D 0x01
+#define CAMERA_MODE_3D 0x02
     struct msm_camera_info camInfo;
     int i, ret;
 
@@ -6864,12 +6866,15 @@ void QualcommCameraHardware::getCameraInfo()
         }
 
         for (i = 0; i < camInfo.num_cameras; ++i) {
-             HAL_cameraInfo[i].facing = camInfo.is_internal_cam[i] == 1 ? CAMERA_FACING_FRONT : CAMERA_FACING_BACK;
-             HAL_cameraInfo[i].orientation = camInfo.s_mount_angle[i];
-             HAL_cameraInfo[i].mode = camInfo.has_3d_support[i] == 1 ? CAMERA_MODE_3D : CAMERA_MODE_2D;
+             HAL_cameraInfo[i].camera_id = i + 1;
+             HAL_cameraInfo[i].position = camInfo.is_internal_cam[i] == 1 ? FRONT_CAMERA : BACK_CAMERA;
+             HAL_cameraInfo[i].sensor_mount_angle = camInfo.s_mount_angle[i];
+             HAL_cameraInfo[i].modes_supported = CAMERA_MODE_2D;
+             if (camInfo.has_3d_support[i])
+                  HAL_cameraInfo[i].modes_supported |= CAMERA_MODE_3D;
 
-             LOGV("camera %d, facing: %d, orientation: %d, mode: %d\n", i, 
-                  HAL_cameraInfo[i].facing, HAL_cameraInfo[i].orientation, HAL_cameraInfo[i].mode);
+             LOGV("camera %d, facing: %d, orientation: %d, mode: %d\n", HAL_cameraInfo[i].camera_id, 
+                  HAL_cameraInfo[i].position, HAL_cameraInfo[i].sensor_mount_angle, HAL_cameraInfo[i].modes_supported);
         }
         HAL_numOfCameras = camInfo.num_cameras;
     }
@@ -6884,7 +6889,6 @@ extern "C" int HAL_getNumberOfCameras()
     return HAL_numOfCameras;
 }
 
-#define BACK_CAMERA 0
 extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
 {
     int i;
@@ -6896,19 +6900,27 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
     for(i = 0; i < HAL_numOfCameras; i++) {
         if(i == cameraId) {
             LOGI("Found a matching camera info for ID %d", cameraId);
-            cameraInfo->facing = HAL_cameraInfo[i].facing;
+            cameraInfo->facing = (HAL_cameraInfo[i].position == BACK_CAMERA)?
+                                   CAMERA_FACING_BACK : CAMERA_FACING_FRONT;
             // App Orientation not needed for 7x27 , sensor mount angle 0 is
             // enough.
             if(cameraInfo->facing == CAMERA_FACING_FRONT)
-                cameraInfo->orientation = HAL_cameraInfo[i].orientation;
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
             else if(mCurrentTarget == TARGET_MSM7627)
-                cameraInfo->orientation = HAL_cameraInfo[i].orientation;
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
             else if(mCurrentTarget == TARGET_MSM8660)
-                cameraInfo->orientation = HAL_cameraInfo[i].orientation;
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
             else
-                cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].orientation) + 360)%360;
+                cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
 
             LOGI("%s: orientation = %d", __FUNCTION__, cameraInfo->orientation);
+            cameraInfo->mode = 0;
+            if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_2D)
+                cameraInfo->mode |= CAMERA_SUPPORT_MODE_2D;
+            if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_3D)
+                cameraInfo->mode |= CAMERA_SUPPORT_MODE_3D;
+
+            LOGI("%s: modes supported = %d", __FUNCTION__, cameraInfo->mode);
             return;
         }
     }
@@ -6917,8 +6929,18 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
 
 extern "C" sp<CameraHardwareInterface> HAL_openCameraHardware(int cameraId)
 {
-    CAMERA_HAL_UNUSED(cameraId);
-    return openCameraHardware();
+    int i;
+    LOGI("openCameraHardware: call createInstance");
+    for(i = 0; i < HAL_numOfCameras; i++) {
+        if(i == cameraId) {
+            LOGI("openCameraHardware:Valid camera ID %d", cameraId);
+            parameter_string_initialized = false;
+            HAL_currentCameraId = cameraId;
+            return QualcommCameraHardware::createInstance();
+        }
+    }
+    LOGE("openCameraHardware:Invalid camera ID %d", cameraId);
+    return NULL;
 }
 
 }; // namespace android

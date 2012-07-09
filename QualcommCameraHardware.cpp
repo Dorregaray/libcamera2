@@ -1399,8 +1399,6 @@ void QualcommCameraHardware::initDefaultParameters()
                     CameraParameters::AUTO_EXPOSURE_FRAME_AVG);
     mParameters.set(CameraParameters::KEY_WHITE_BALANCE,
                     CameraParameters::WHITE_BALANCE_AUTO);
-    mParameters.set(CameraParameters::KEY_FOCUS_MODE,
-                    CameraParameters::FOCUS_MODE_AUTO);
     if( (mCurrentTarget != TARGET_MSM7630) && (mCurrentTarget != TARGET_QSD8250) ) {
     mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS,
                     "yuv420sp");
@@ -1435,13 +1433,18 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_SUPPORTED_WHITE_BALANCE,
                     whitebalance_values);
     if((strcmp(mSensorInfo.name, "vx6953")) &&
-        (strcmp(mSensorInfo.name, "VX6953")))
-
+        (strcmp(mSensorInfo.name, "VX6953"))) {
        mParameters.set(CameraParameters::KEY_SUPPORTED_FOCUS_MODES,
                     focus_mode_values);
-    else
+       mParameters.set(CameraParameters::KEY_FOCUS_MODE,
+                    CameraParameters::FOCUS_MODE_AUTO);
+    }
+    else {
        mParameters.set(CameraParameters::KEY_SUPPORTED_FOCUS_MODES,
                    CameraParameters::FOCUS_MODE_INFINITY);
+       mParameters.set(CameraParameters::KEY_FOCUS_MODE,
+                   CameraParameters::FOCUS_MODE_INFINITY);
+    }
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_PICTURE_FORMATS,
                     picture_format_values);
@@ -3685,8 +3688,15 @@ status_t QualcommCameraHardware::autoFocus()
     Mutex::Autolock l(&mLock);
 
     if(!sensorType->hasAutoFocusSupport){
+       /*
+        * If autofocus is not supported HAL defaults
+        * focus mode to infinity and supported mode to
+        * infinity also. In this mode and fixed mode app
+        * should not call auto focus.
+        */
+        LOGE("Auto Focus not supported");
         LOGV("autoFocus X");
-        return NO_ERROR;
+        return /*INVALID_OPERATION*/NO_ERROR;
     }
 
     if (mCameraControlFd < 0) {

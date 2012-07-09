@@ -1063,7 +1063,6 @@ QualcommCameraHardware::QualcommCameraHardware()
       mCallbackCookie(0),
       mDebugFps(0),
       mSnapshotDone(0),
-      mSnapshotPrepare(0),
       mDisEnabled(0),
       mRotation(0),
       mResetOverlayCrop(false),
@@ -3696,13 +3695,6 @@ status_t QualcommCameraHardware::autoFocus()
     {
         mAutoFocusThreadLock.lock();
         if (!mAutoFocusThreadRunning) {
-            if (native_prepare_snapshot(mCameraControlFd) == FALSE) {
-               LOGE("native_prepare_snapshot failed!\n");
-               mAutoFocusThreadLock.unlock();
-               return UNKNOWN_ERROR;
-            } else {
-                mSnapshotPrepare = TRUE;
-            }
 
             // Create a detached thread here so that we don't have to wait
             // for it when we cancel AF.
@@ -3861,14 +3853,12 @@ status_t QualcommCameraHardware::takePicture()
         mSnapshotFormat = PICTURE_FORMAT_JPEG;
 
     if(mSnapshotFormat == PICTURE_FORMAT_JPEG){
-        if(!mSnapshotPrepare){
-            if(!native_prepare_snapshot(mCameraControlFd)) {
-                mSnapshotThreadWaitLock.unlock();
-                return UNKNOWN_ERROR;
-            }
+        if(!native_prepare_snapshot(mCameraControlFd)) {
+            mSnapshotThreadWaitLock.unlock();
+            return UNKNOWN_ERROR;
         }
     }
-    mSnapshotPrepare = FALSE;
+
     if(mCurrentTarget == TARGET_MSM8660) {
        /* Store the last frame queued for preview. This
         * shall be used as postview */

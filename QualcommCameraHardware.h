@@ -568,7 +568,6 @@ private:
     int kPreviewBufferCountActual;
     int previewWidth, previewHeight;
     bool mSnapshotDone;
-    bool mSnapshotPrepare;
     int videoWidth, videoHeight;
 
     bool mDisEnabled;

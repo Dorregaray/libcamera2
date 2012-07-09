@@ -3780,23 +3780,34 @@ void QualcommCameraHardware::runSnapshotThread(void *data)
     mInSnapshotModeWaitLock.unlock();
 
     mSnapshotFormat = 0;
-    if(strTexturesOn != true ) {
-        mJpegThreadWaitLock.lock();
-        while (mJpegThreadRunning) {
-            LOGV("runSnapshotThread: waiting for jpeg thread to complete.");
-            mJpegThreadWait.wait(mJpegThreadWaitLock);
-            LOGV("runSnapshotThread: jpeg thread completed.");
-        }
-        mJpegThreadWaitLock.unlock();
-        //clear the resources
+    if(ret != false) {
+        if(strTexturesOn != true ) {
+            mJpegThreadWaitLock.lock();
+            while (mJpegThreadRunning) {
+                LOGI("runSnapshotThread: waiting for jpeg thread to complete.");
+                mJpegThreadWait.wait(mJpegThreadWaitLock);
+                LOGI("runSnapshotThread: jpeg thread completed.");
+            }
+            mJpegThreadWaitLock.unlock();
+            //clear the resources
 #if DLOPEN_LIBMMCAMERA
-        if(libhandle)
+            if(libhandle)
 #endif
-        {
-            LINK_jpeg_encoder_join();
+            {
+                LINK_jpeg_encoder_join();
+            }
         }
-        deinitRaw();
+    } else {
+        if( mDataCallback
+            && (mMsgEnabled & CAMERA_MSG_COMPRESSED_IMAGE)) {
+            /* get picture failed. Give jpeg callback with NULL data
+             * to the application to restore to preview mode
+             */
+            LOGE("get picture failed, giving jpeg callback with NULL data");
+            mDataCallback(CAMERA_MSG_COMPRESSED_IMAGE, NULL, mCallbackCookie);
+        }
     }
+    deinitRaw();
 
     mSnapshotThreadWaitLock.lock();
     mSnapshotThreadRunning = false;
@@ -3808,15 +3819,6 @@ void QualcommCameraHardware::runSnapshotThread(void *data)
         LOGV("SNAPSHOT: dlclose(libqcamera)");
     }
 #endif
-
-    if( (ret == false) && mDataCallback
-        && (mMsgEnabled & CAMERA_MSG_COMPRESSED_IMAGE)) {
-        /* get picture failed. Give jpeg callback with NULL data
-         * to the application to restore to preview mode
-         */
-        LOGE("get picture failed, giving jpeg callback with NULL data");
-        mDataCallback(CAMERA_MSG_COMPRESSED_IMAGE, NULL, mCallbackCookie);
-    }
 
     LOGV("runSnapshotThread X");
 }

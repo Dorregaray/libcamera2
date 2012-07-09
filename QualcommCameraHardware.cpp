@@ -3497,27 +3497,27 @@ void QualcommCameraHardware::stopPreviewInternal()
                 mCameraRunning = 0;
             }
         }
-
-	if (!mCameraRunning && mPreviewInitialized) {
-	    deinitPreview();
-	    if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
-		mVideoThreadWaitLock.lock();
-		LOGV("in stopPreviewInternal: making mVideoThreadExit 1");
-		mVideoThreadExit = 1;
-		mVideoThreadWaitLock.unlock();
-		//  720p : signal the video thread , and check in video thread if stop is called, if so exit video thread.
-		pthread_mutex_lock(&(g_busy_frame_queue.mut));
-		pthread_cond_signal(&(g_busy_frame_queue.wait));
-		pthread_mutex_unlock(&(g_busy_frame_queue.mut));
+    }
+        if (!mCameraRunning && mPreviewInitialized) {
+            deinitPreview();
+            if( ( mCurrentTarget == TARGET_MSM7630 ) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660)) {
+                mVideoThreadWaitLock.lock();
+                LOGV("in stopPreviewInternal: making mVideoThreadExit 1");
+                mVideoThreadExit = 1;
+                mVideoThreadWaitLock.unlock();
+                //  720p : signal the video thread , and check in video thread if stop is called, if so exit video thread.
+                pthread_mutex_lock(&(g_busy_frame_queue.mut));
+                pthread_cond_signal(&(g_busy_frame_queue.wait));
+                pthread_mutex_unlock(&(g_busy_frame_queue.mut));
                 /* Flush the Busy Q */
                 cam_frame_flush_video();
                 /* Flush the Free Q */
                 LINK_cam_frame_flush_free_video();
-	    }
-	    mPreviewInitialized = false;
-	}
-	else LOGE("stopPreviewInternal: failed to stop preview");
-    }
+            }
+            mPreviewInitialized = false;
+        }
+        else LOGE("stopPreviewInternal: failed to stop preview");
+
 
     LOGI("stopPreviewInternal X: %d", mCameraRunning);
 }

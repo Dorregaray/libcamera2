@@ -689,7 +689,8 @@ static const str_map focus_modes[] = {
     { CameraParameters::FOCUS_MODE_AUTO,     AF_MODE_AUTO},
     { CameraParameters::FOCUS_MODE_INFINITY, DONT_CARE },
     { CameraParameters::FOCUS_MODE_NORMAL,   AF_MODE_NORMAL },
-    { CameraParameters::FOCUS_MODE_MACRO,    AF_MODE_MACRO }
+    { CameraParameters::FOCUS_MODE_MACRO,    AF_MODE_MACRO },
+    { CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO, DONT_CARE }
 };
 
 static const str_map lensshade[] = {
@@ -700,11 +701,6 @@ static const str_map lensshade[] = {
 static const str_map skinToneEnhancement[] = {
     { CameraParameters::SKIN_TONE_ENHANCEMENT_ENABLE, TRUE },
     { CameraParameters::SKIN_TONE_ENHANCEMENT_DISABLE, FALSE }
-};
-
-static const str_map continuous_af[] = {
-    { CameraParameters::CONTINUOUS_AF_OFF, FALSE },
-    { CameraParameters::CONTINUOUS_AF_ON, TRUE }
 };
 
 static const str_map selectable_zone_af[] = {
@@ -793,7 +789,6 @@ static String8 skinToneEnhancement_values;
 static String8 touchafaec_values;
 static String8 picture_format_values;
 static String8 scenemode_values;
-static String8 continuous_af_values;
 static String8 zoom_ratio_values;
 static String8 preview_frame_rate_values;
 static String8 frame_rate_mode_values;
@@ -1293,10 +1288,6 @@ void QualcommCameraHardware::initDefaultParameters()
         picture_format_values = create_values_str(
             picture_formats, sizeof(picture_formats)/sizeof(str_map));
 
-        if(sensorType->hasAutoFocusSupport){
-            continuous_af_values = create_values_str(
-                continuous_af, sizeof(continuous_af) / sizeof(str_map));
-        }
         if(native_get_maxzoom(mCameraControlFd,
                 (void *)&mMaxZoom) == true){
             LOGD("Maximum zoom value is %d", mMaxZoom);
@@ -1512,10 +1503,6 @@ void QualcommCameraHardware::initDefaultParameters()
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_SCENE_MODES,
                     scenemode_values);
-    mParameters.set(CameraParameters::KEY_CONTINUOUS_AF,
-                    CameraParameters::CONTINUOUS_AF_OFF);
-    mParameters.set(CameraParameters::KEY_SUPPORTED_CONTINUOUS_AF,
-                    continuous_af_values);
     mParameters.set(CameraParameters::KEY_TOUCH_AF_AEC,
                     CameraParameters::TOUCH_AF_AEC_OFF);
     mParameters.set(CameraParameters::KEY_SUPPORTED_TOUCH_AF_AEC,
@@ -3556,9 +3543,10 @@ void QualcommCameraHardware::runAutoFocus()
     LOGV("%s E", __FUNCTION__);
     mAutoFocusThreadLock.lock();
     // Skip autofocus if focus mode is infinity.
+    const char * focusMode = mParameters.get(CameraParameters::KEY_FOCUS_MODE);
     if ((mParameters.get(CameraParameters::KEY_FOCUS_MODE) == 0)
-           || (strcmp(mParameters.get(CameraParameters::KEY_FOCUS_MODE),
-               CameraParameters::FOCUS_MODE_INFINITY) == 0)) {
+           || (strcmp(focusMode, CameraParameters::FOCUS_MODE_INFINITY) == 0)
+           || (strcmp(focusMode, CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO) == 0)) {
         goto done;
     }
 
@@ -4087,7 +4075,6 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
         if ((rc = setBrightness(params)))   final_rc = rc;
         if ((rc = setISOValue(params)))  final_rc = rc;
     }
-    if ((rc = setContinuousAf(params)))  final_rc = rc;
     if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
 
     LOGV("setParameters: X");
@@ -5866,26 +5853,6 @@ status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& param
     return BAD_VALUE;
 }
 
-status_t QualcommCameraHardware::setContinuousAf(const CameraParameters& params)
-{
-    if(sensorType->hasAutoFocusSupport){
-        const char *str = params.get(CameraParameters::KEY_CONTINUOUS_AF);
-        if (str != NULL) {
-            int value = attr_lookup(continuous_af,
-                    sizeof(continuous_af) / sizeof(str_map), str);
-            if (value != NOT_FOUND) {
-                int8_t temp = (int8_t)value;
-                mParameters.set(CameraParameters::KEY_CONTINUOUS_AF, str);
-                native_set_parm(CAMERA_SET_CAF, sizeof(int8_t), (void *)&temp);
-                return NO_ERROR;
-            }
-        }
-        LOGE("Invalid continuous Af value: %s", (str == NULL) ? "NULL" : str);
-        return BAD_VALUE;
-    }
-    return NO_ERROR;
-}
-
 status_t QualcommCameraHardware::setSelectableZoneAf(const CameraParameters& params)
 {
     if(sensorType->hasAutoFocusSupport && supportsSelectableZoneAf()) {
@@ -6228,6 +6195,12 @@ status_t QualcommCameraHardware::setFocusMode(const CameraParameters& params)
                                     sizeof(focus_modes) / sizeof(str_map), str);
         if (value != NOT_FOUND) {
             mParameters.set(CameraParameters::KEY_FOCUS_MODE, str);
+            int cafSupport = FALSE;
+            if(!strcmp(str, CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO)){
+                cafSupport = TRUE;
+            }
+            LOGV("Continuous Auto Focus %d", cafSupport);
+            native_set_parm(CAMERA_SET_CAF, sizeof(int8_t), (void *)&cafSupport);
             // Focus step is reset to infinity when preview is started. We do
             // not need to do anything now.
             return NO_ERROR;

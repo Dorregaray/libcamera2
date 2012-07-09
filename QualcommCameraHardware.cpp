@@ -4075,6 +4075,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
         if ((rc = setBrightness(params)))   final_rc = rc;
         if ((rc = setISOValue(params)))  final_rc = rc;
     }
+    //selectableZoneAF needs to be invoked after continuous AF
     if ((rc = setSelectableZoneAf(params)))   final_rc = rc;
 
     LOGV("setParameters: X");
@@ -6195,12 +6196,14 @@ status_t QualcommCameraHardware::setFocusMode(const CameraParameters& params)
                                     sizeof(focus_modes) / sizeof(str_map), str);
         if (value != NOT_FOUND) {
             mParameters.set(CameraParameters::KEY_FOCUS_MODE, str);
-            int cafSupport = FALSE;
-            if(!strcmp(str, CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO)){
-                cafSupport = TRUE;
+            if (sensorType->hasAutoFocusSupport) {
+                int cafSupport = FALSE;
+                if(!strcmp(str, CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO)){
+                    cafSupport = TRUE;
+                }
+                LOGV("Continuous Auto Focus %d", cafSupport);
+                native_set_parm(CAMERA_SET_CAF, sizeof(int8_t), (void *)&cafSupport);
             }
-            LOGV("Continuous Auto Focus %d", cafSupport);
-            native_set_parm(CAMERA_SET_CAF, sizeof(int8_t), (void *)&cafSupport);
             // Focus step is reset to infinity when preview is started. We do
             // not need to do anything now.
             return NO_ERROR;

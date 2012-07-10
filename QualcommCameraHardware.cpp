@@ -2882,18 +2882,14 @@ bool QualcommCameraHardware::initPreview()
 
     //Pass the original video width and height and get the required width
     //and height for record buffer allocation
-    mDimension.orig_video_width = videoWidth;
-    mDimension.orig_video_height = videoHeight;
+    mDimension.video_width = videoWidth;
+    mDimension.video_height = videoHeight;
 
     // mDimension will be filled with thumbnail_width, thumbnail_height,
     // orig_picture_dx, and orig_picture_dy after this function call. We need to
     // keep it for jpeg_encoder_encode.
     bool ret = native_set_parm(CAMERA_SET_PARM_DIMENSION,
                                sizeof(cam_ctrl_dimension_t), &mDimension);
-
-    //Restore video_width and video_height that might have been zeroed
-    mDimension.video_width = videoWidth;
-    mDimension.video_height = videoHeight;
 
     mPreviewHeap = new PmemPool(pmem_region,
                                 MemoryHeapBase::READ_ONLY | MemoryHeapBase::NO_CACHING,

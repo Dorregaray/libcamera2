@@ -51,7 +51,6 @@
 #define MAX_SNAPSHOT_BUFFERS 5
 #define MAX_EXP_BRACKETING_LENGTH 32
 
-
 /* Exif Tag ID */
 typedef uint32_t exif_tag_id_t;
 
@@ -210,7 +209,6 @@ typedef struct {
   uint32_t bestshot_reconfigure;
 }cam_prop_t;
 
-#if 0 /* TODO: our libcamera needs 88bytes while this definition has not 420, fix 88bytes definitions */
 typedef struct {
   uint16_t video_width;         /* Video width seen by VFE could be different than orig. Ex. DIS */
   uint16_t video_height;        /* Video height seen by VFE */
@@ -226,27 +224,37 @@ typedef struct {
   uint16_t ui_thumbnail_width;  /* Just like orig_picture_dy */
   uint16_t thumbnail_height;
   uint16_t thumbnail_width;
+#if 0
   uint16_t orig_picture_width;
   uint16_t orig_picture_height;
   uint16_t orig_thumb_width;
   uint16_t orig_thumb_height;
+#endif
   uint16_t raw_picture_height;
   uint16_t raw_picture_width;
+#ifdef RDI_SUPPORT /* Introduced by commit 57495c560b62b460285225f2e8ac30b0e61199ee to CAF, not supported by us */
   uint16_t rdi0_height;
   uint16_t rdi0_width;
   uint16_t rdi1_height;
   uint16_t rdi1_width;
+#endif
   uint32_t hjr_xtra_buff_for_bayer_filtering;
   cam_format_t    prev_format;
   cam_format_t    enc_format;
   cam_format_t    thumb_format;
   cam_format_t    main_img_format;
+#ifdef RDI_SUPPORT
   cam_format_t    rdi0_format;
   cam_format_t    rdi1_format;
+#endif
+#if 0
   cam_pad_format_t prev_padding_format;
   cam_pad_format_t enc_padding_format;
   cam_pad_format_t thumb_padding_format;
   cam_pad_format_t main_padding_format;
+#else
+  uint32_t         filler1; /* FIXME */
+#endif
   uint16_t display_luma_width;
   uint16_t display_luma_height;
   uint16_t display_chroma_width;
@@ -263,62 +271,17 @@ typedef struct {
   uint16_t main_img_luma_height;
   uint16_t main_img_chroma_width;
   uint16_t main_img_chroma_height;
+#if 0
   int rotation;
   cam_frame_len_offset_t display_frame_offset;
   cam_frame_len_offset_t video_frame_offset;
   cam_frame_len_offset_t picture_frame_offset;
   cam_frame_len_offset_t thumb_frame_offset;
-  uint32_t channel_interface_mask;
-} cam_ctrl_dimension_t;
-#else
-typedef struct {
-  //Size: 88 bytes = 44 short
-  unsigned short video_width;
-  unsigned short video_height;
-  unsigned short picture_width;
-  unsigned short picture_height;
-  unsigned short display_width;
-  unsigned short display_height;
-  unsigned short orig_picture_dx;
-  unsigned short orig_picture_dy;
-  unsigned short ui_thumbnail_width;
-  unsigned short ui_thumbnail_height;
-  unsigned short thumbnail_width;
-  unsigned short thumbnail_height;
-  unsigned short raw_picture_height;
-  unsigned short raw_picture_width;
-  unsigned short filler7;
-  unsigned short filler8;
-  unsigned short filler9;
-  unsigned short filler10;
-  unsigned short prev_format; //guesss
-  unsigned short filler12;
-  unsigned short filler13;
-  unsigned short filler14;
-  unsigned short main_img_format; //guess
-  unsigned short enc_format; //guess
-  unsigned short thumb_format; //guess
-  unsigned short filler18;
-  unsigned short filler19;
-  unsigned short filler20;
-  unsigned short display_luma_width; //guess
-  unsigned short display_luma_height; //guess
-  unsigned short display_chroma_width; //guess
-  unsigned short display_chroma_height; //guess
-  unsigned short filler25;
-  unsigned short filler26;
-  unsigned short filler27;
-  unsigned short filler28;
-  unsigned short filler29;
-  unsigned short filler30;
-  unsigned short filler31;
-  unsigned short filler32;
-  unsigned short filler33;
-  unsigned short filler34;
-  unsigned short filler35;
-  unsigned short filler36;
-} cam_ctrl_dimension_t;
 #endif
+#ifdef RDI_SUPPORT
+  uint32_t channel_interface_mask;
+#endif
+} cam_ctrl_dimension_t;
 
 /* Add enumenrations at the bottom but before MM_CAMERA_PARM_MAX */
 typedef enum {

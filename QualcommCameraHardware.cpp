@@ -4686,7 +4686,6 @@ status_t QualcommCameraHardware::setDIS() {
     video_dis_param_ctrl_t disCtrl;
 
     bool ret = true;
-
     LOGV("mDisEnabled = %d", mDisEnabled);
 
     int video_frame_cbcroffset;
@@ -4694,11 +4693,12 @@ status_t QualcommCameraHardware::setDIS() {
     if(mCurrentTarget == TARGET_MSM8660)
         video_frame_cbcroffset = PAD_TO_2K(videoWidth * videoHeight);
 
+    memset(&disCtrl, 0, sizeof(disCtrl));
     disCtrl.dis_enable = mDisEnabled;
     disCtrl.video_rec_width = videoWidth;
     disCtrl.video_rec_height = videoHeight;
     disCtrl.output_cbcr_offset = video_frame_cbcroffset;
-    disCtrl.filler4 = 4;
+    disCtrl.filler1 = 4;
 
     ret = native_set_parm(CAMERA_SET_VIDEO_DIS_PARAMS,
                        sizeof(disCtrl), &disCtrl);
@@ -6858,8 +6858,6 @@ void QualcommCameraHardware::encodeData() {
 
 void QualcommCameraHardware::getCameraInfo()
 {
-#define CAMERA_MODE_2D 0x01
-#define CAMERA_MODE_3D 0x02
     struct msm_camera_info camInfo;
     int i, ret;
 

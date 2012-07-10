@@ -56,14 +56,11 @@ typedef struct {
 } camera_position_type;
 
 typedef struct {
-	unsigned short dis_enable;
-	unsigned short filler1;
-	unsigned short video_rec_width;
-	unsigned short filler2;
-	unsigned short video_rec_height;
-	unsigned short filler3;
-	unsigned short output_cbcr_offset;
-	unsigned short filler4;
+	uint32_t dis_enable;
+	uint32_t video_rec_width;
+	uint32_t video_rec_height;
+	uint16_t output_cbcr_offset;
+	uint16_t filler1;
 } video_dis_param_ctrl_t;
 
 typedef uint8_t jpeg_event_t;

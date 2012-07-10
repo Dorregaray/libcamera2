@@ -1242,10 +1242,6 @@ void QualcommCameraHardware::initDefaultParameters()
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
     mDimension.ui_thumbnail_height =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
-    mDimension.thumbnail_width = mDimension.ui_thumbnail_width;
-    mDimension.thumbnail_height = mDimension.ui_thumbnail_height;
-    mDimension.orig_picture_dx = mDimension.ui_thumbnail_width;
-    mDimension.orig_picture_dy = mDimension.ui_thumbnail_height;
 
     findSensorType();
     hasAutoFocusSupport();
@@ -1580,7 +1576,7 @@ void QualcommCameraHardware::findSensorType(){
         unsigned int i;
         for (i = 0; i < sizeof(sensorTypes) / sizeof(SensorType); i++) {
             if (sensorTypes[i].rawPictureHeight
-                    == mDimension.raw_picture_height) {
+                    == mDimension.orig_picture_dy) {
                 sensorType = sensorTypes + i;
                 LOGV("sensorType: %s", sensorTypes[i].name);
                 return;
@@ -2513,6 +2509,10 @@ bool QualcommCameraHardware::native_set_parm(
              mCameraControlFd, type, length, ctrlCmd.status);
         return false;
     }
+    if (type == 1) {
+        cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
+        dump_dimensions(t);
+    }
     return true;
 }
 //overloaded funtion which takes an extra parameter ie  ctrlCmd.status Value
@@ -2796,7 +2796,7 @@ bool QualcommCameraHardware::initPreview()
     LOGV("initPreview: Got preview dimension as %d x %d ", previewWidth, previewHeight);
 
     mDimension.display_width = previewWidth;
-    mDimension.display_height= previewHeight;
+    mDimension.display_height = previewHeight;
     mDimension.ui_thumbnail_width =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
     mDimension.ui_thumbnail_height =

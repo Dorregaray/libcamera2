@@ -159,8 +159,6 @@ struct fifo_node *dequeue(struct fifo_queue *queue) {
 #define CAMERA_DEF_CONTRAST 8
 #define CAMERA_DEF_SATURATION 6
 
-#define CAMERA_SET_PARM_SCENE_MODE 0  /* FIXME */
-
 #define JPEG_EVENT_DONE 0 /* useless */
 
 

@@ -618,15 +618,80 @@ static const str_map scenedetect[] = {
 
 static void dump_dimensions(cam_ctrl_dimension_t *t)
 {
-    LOGV("cam_ctrl_dimension_t dump:");
-    LOGV("video_width: %d, video_height: %d, picture_width: %d, picture_height: %d, "
-         "display_width: %d, display_height: %d, orig_picture_dx: %d, orig_picture_dy: %d, "
-         "ui_thumbnail_width: %d, ui_thumbnail_height:%d, thumbnail_width: %d, thumbnail_height: %d, "
-         "raw_picture_height: %d, raw_picture_width: %d",
-         t->video_width, t->video_height, t->picture_width, t->picture_height,
-         t->display_width, t->display_height, t->orig_picture_dx, t->orig_picture_dy,
-         t->ui_thumbnail_width, t->ui_thumbnail_height, t->thumbnail_width, t->thumbnail_height,
-         t->raw_picture_height, t->raw_picture_width);
+#define PRINT_VAL(_name) LOGV("\t" #_name ": %u", t->_name)
+    LOGV("Dimensions dump:");
+    PRINT_VAL(video_width);
+    PRINT_VAL(video_height);
+    PRINT_VAL(picture_width);
+    PRINT_VAL(picture_height);
+    PRINT_VAL(display_width);
+    PRINT_VAL(display_height);
+    PRINT_VAL(orig_video_width);
+    PRINT_VAL(orig_video_height);
+    PRINT_VAL(orig_picture_dx);
+    PRINT_VAL(orig_picture_dy);
+    PRINT_VAL(ui_thumbnail_height);
+    PRINT_VAL(ui_thumbnail_width);
+    PRINT_VAL(thumbnail_height);
+    PRINT_VAL(thumbnail_width);
+#if 0
+    PRINT_VAL(orig_picture_width);
+    PRINT_VAL(orig_picture_height);
+    PRINT_VAL(orig_thumb_width);
+    PRINT_VAL(orig_thumb_height);
+#endif
+    PRINT_VAL(raw_picture_height);
+    PRINT_VAL(raw_picture_width);
+#ifdef RDI_SUPPORT
+    PRINT_VAL(rdi0_height);
+    PRINT_VAL(rdi0_width);
+    PRINT_VAL(rdi1_height);
+    PRINT_VAL(rdi1_width);
+#endif
+    PRINT_VAL(hjr_xtra_buff_for_bayer_filtering);
+    PRINT_VAL(prev_format);
+    PRINT_VAL(enc_format);
+    PRINT_VAL(thumb_format);
+    PRINT_VAL(main_img_format);
+#ifdef RDI_SUPPORT
+    PRINT_VAL(rdi0_format);
+    PRINT_VAL(rdi1_format);
+#endif
+#if 0
+    PRINT_VAL(prev_padding_format);
+    PRINT_VAL(enc_padding_format);
+    PRINT_VAL(thumb_padding_format);
+    PRINT_VAL(main_padding_format);
+#else
+    PRINT_VAL(filler1);
+#endif
+    PRINT_VAL(display_luma_width);
+    PRINT_VAL(display_luma_height);
+    PRINT_VAL(display_chroma_width);
+    PRINT_VAL(display_chroma_height);
+    PRINT_VAL(video_luma_width);
+    PRINT_VAL(video_luma_height);
+    PRINT_VAL(video_chroma_width);
+    PRINT_VAL(video_chroma_height);
+    PRINT_VAL(thumbnail_luma_width);
+    PRINT_VAL(thumbnail_luma_height);
+    PRINT_VAL(thumbnail_chroma_width);
+    PRINT_VAL(thumbnail_chroma_height);
+    PRINT_VAL(main_img_luma_width);
+    PRINT_VAL(main_img_luma_height);
+    PRINT_VAL(main_img_chroma_width);
+    PRINT_VAL(main_img_chroma_height);
+#if 0
+    LOGV("\trotation: %u\n", t->rotation);
+    PRINT_VAL(display_frame_offset);
+    PRINT_VAL(video_frame_offset);
+    PRINT_VAL(picture_frame_offset);
+    PRINT_VAL(thumb_frame_offset);
+#endif
+#ifdef RDI_SUPPORT
+    PRINT_VAL(channel_interface_mask);
+#endif
+
 }
 
 #define country_number (sizeof(country_numeric) / sizeof(country_map))
@@ -2499,6 +2564,7 @@ bool QualcommCameraHardware::native_set_parm(
 
     if (type == 1) {
         cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
+        LOGV("Before calling ioctl");
         dump_dimensions(t);
     }
 
@@ -2511,10 +2577,12 @@ bool QualcommCameraHardware::native_set_parm(
     }
     if (type == 1) {
         cam_ctrl_dimension_t *t = (cam_ctrl_dimension_t *)value;
+        LOGV("After calling ioctl");
         dump_dimensions(t);
     }
     return true;
 }
+
 //overloaded funtion which takes an extra parameter ie  ctrlCmd.status Value
 bool QualcommCameraHardware::native_set_parm(
     cam_ctrl_type type, uint16_t length, void *value, int *result)

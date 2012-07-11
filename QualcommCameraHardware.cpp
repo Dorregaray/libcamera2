@@ -801,11 +801,6 @@ struct SensorType {
 /*
  * Values based on aec.c
  */
-
-//Dx,Dy should be same as defined in res/layout/camera.xml
-#define FOCUS_RECTANGLE_DX 100
-#define FOCUS_RECTANGLE_DY 100
-
 #define EXPOSURE_COMPENSATION_MAXIMUM_NUMERATOR 12
 #define EXPOSURE_COMPENSATION_MINIMUM_NUMERATOR -12
 #define EXPOSURE_COMPENSATION_DEFAULT_NUMERATOR 0
@@ -1589,6 +1584,8 @@ void QualcommCameraHardware::initDefaultParameters()
                     touchafaec_values);
     mParameters.setTouchIndexAec(-1, -1);
     mParameters.setTouchIndexAf(-1, -1);
+    mParameters.set("touchAfAec-dx","100");
+    mParameters.set("touchAfAec-dy","100");
     mParameters.set(CameraParameters::KEY_MAX_NUM_FOCUS_AREAS, "1");
     mParameters.set(CameraParameters::KEY_MAX_NUM_METERING_AREAS, "1");
     mParameters.set(CameraParameters::KEY_SCENE_DETECT,
@@ -5990,6 +5987,12 @@ status_t QualcommCameraHardware::setTouchAfAec(const CameraParameters& params)
             int value = attr_lookup(touchafaec,
                     sizeof(touchafaec) / sizeof(str_map), str);
             if (value != NOT_FOUND) {
+
+                //Dx,Dy will be same as defined in res/layout/camera.xml
+                //passed down to HAL in a key.value pair.
+
+                int FOCUS_RECTANGLE_DX = params.getInt("touchAfAec-dx");
+                int FOCUS_RECTANGLE_DY = params.getInt("touchAfAec-dy");
                 mParameters.set(CameraParameters::KEY_TOUCH_AF_AEC, str);
                 mParameters.setTouchIndexAec(xAec, yAec);
                 mParameters.setTouchIndexAf(xAf, yAf);

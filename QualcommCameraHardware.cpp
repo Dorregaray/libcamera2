@@ -1106,6 +1106,7 @@ QualcommCameraHardware::QualcommCameraHardware()
       mPreviewFrameSize(0),
       mRawSize(0),
       mCbCrOffsetRaw(0),
+      mYOffset(0),
       mCameraControlFd(-1),
       mAutoFocusThreadRunning(false),
       mAutoFocusFd(-1),
@@ -4610,9 +4611,12 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
             pdata);
 
     // If output  is NOT enabled (targets otherthan 7x30 , 8x50 and 8x60 currently..)
+
+    nsecs_t timeStamp = nsecs_t(frame->ts.tv_sec)*1000000000LL + frame->ts.tv_nsec;
+
     if( (mCurrentTarget != TARGET_MSM7630 ) &&  (mCurrentTarget != TARGET_QSD8250) && (mCurrentTarget != TARGET_MSM8660)) {
         if(rcb != NULL && (msgEnabled & CAMERA_MSG_VIDEO_FRAME)) {
-            rcb(systemTime(), CAMERA_MSG_VIDEO_FRAME, mPreviewHeap->mBuffers[offset], rdata);
+            rcb(timeStamp, CAMERA_MSG_VIDEO_FRAME, mPreviewHeap->mBuffers[offset], rdata);
             Mutex::Autolock rLock(&mRecordFrameLock);
             if (mReleasedRecordingFrame != true) {
                 LOGV("block waiting for frame release");

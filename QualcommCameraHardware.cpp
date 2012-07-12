@@ -1050,7 +1050,7 @@ static void cam_frame_post_video (struct msm_frame *p)
 
 void QualcommCameraHardware::storeTargetType(void) {
     char mDeviceName[PROPERTY_VALUE_MAX];
-    property_get("ro.product.device",mDeviceName," ");
+    property_get("ro.board.platform",mDeviceName," ");
     mCurrentTarget = TARGET_MAX;
     for( int i = 0; i < TARGET_MAX ; i++) {
         if( !strncmp(mDeviceName, targetList[i].targetStr, 7)) {
@@ -7036,7 +7036,7 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
         return;
     }
 
-    property_get("ro.product.device",mDeviceName," ");
+    property_get("ro.board.platform",mDeviceName," ");
 
     for(i = 0; i < HAL_numOfCameras; i++) {
         if(i == cameraId) {

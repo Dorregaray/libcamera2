@@ -869,11 +869,11 @@ static String8 create_sizes_str(const camera_size_type *sizes, int len) {
     char buffer[32];
 
     if (len > 0) {
-        sprintf(buffer, "%dx%d", sizes[0].width, sizes[0].height);
+        snprintf(buffer, sizeof(buffer), "%dx%d", sizes[0].width, sizes[0].height);
         str.append(buffer);
     }
     for (int i = 1; i < len; i++) {
-        sprintf(buffer, ",%dx%d", sizes[i].width, sizes[i].height);
+        snprintf(buffer, sizeof(buffer), ",%dx%d", sizes[i].width, sizes[i].height);
         str.append(buffer);
     }
     return str;
@@ -884,11 +884,11 @@ static String8 create_fps_str(const android:: FPSRange* fps, int len) {
     char buffer[32];
 
     if (len > 0) {
-        sprintf(buffer, "(%d,%d)", fps[0].minFPS, fps[0].maxFPS);
+        snprintf(buffer, sizeof(buffer), "(%d,%d)", fps[0].minFPS, fps[0].maxFPS);
         str.append(buffer);
     }
     for (int i = 1; i < len; i++) {
-        sprintf(buffer, ",(%d,%d)", fps[i].minFPS, fps[i].maxFPS);
+        snprintf(buffer, sizeof(buffer), ",(%d,%d)", fps[i].minFPS, fps[i].maxFPS);
         str.append(buffer);
     }
     return str;
@@ -2340,7 +2340,7 @@ void QualcommCameraHardware::setGpsParameters() {
     str = mParameters.get(CameraParameters::KEY_GPS_PROCESSING_METHOD);
     if (str!=NULL) {
        memcpy(gpsProcessingMethod, ExifAsciiPrefix, EXIF_ASCII_PREFIX_SIZE);
-       strncpy(gpsProcessingMethod + EXIF_ASCII_PREFIX_SIZE, str,
+       strlcpy(gpsProcessingMethod + EXIF_ASCII_PREFIX_SIZE, str,
            GPS_PROCESSING_METHOD_SIZE-1);
        gpsProcessingMethod[EXIF_ASCII_PREFIX_SIZE + GPS_PROCESSING_METHOD_SIZE-1] = '\0';
        addExifTag(EXIFTAGID_GPS_PROCESSINGMETHOD, EXIF_ASCII,
@@ -2480,9 +2480,7 @@ bool QualcommCameraHardware::native_jpeg_encode(void)
     //set TimeStamp
     const char *str = mParameters.get(CameraParameters::KEY_EXIF_DATETIME);
     if(str != NULL) {
-      strncpy(dateTime, str, 19);
-      dateTime[19] = '\0';
-
+      strlcpy(dateTime, str, 20);
       addExifTag(EXIFTAGID_EXIF_DATE_TIME_ORIGINAL, EXIF_ASCII,
                   20, 1, (void *)dateTime);
     }
@@ -2785,7 +2783,7 @@ void QualcommCameraHardware::runVideoThread(void *data)
             static int frameCnt = 0;
             if (frameCnt >= 11 && frameCnt <= 13 ) {
                 char buf[128];
-                sprintf(buf, "/data/%d_v.yuv", frameCnt);
+                snprintf(buffer, sizeof(buf),  "/data/%d_v.yuv", frameCnt);
                 int file_fd = open(buf, O_RDWR | O_CREAT, 0777);
                 LOGV("dumping video frame %d", frameCnt);
                 if (file_fd < 0) {
@@ -3994,8 +3992,7 @@ void QualcommCameraHardware::set_liveshot_exifinfo()
     //set TimeStamp
     const char *str = mParameters.get(CameraParameters::KEY_EXIF_DATETIME);
     if(str != NULL) {
-        strncpy(dateTime, str, 19);
-        dateTime[19] = '\0';
+        strlcpy(dateTime, str, 20);
         addExifTag(EXIFTAGID_EXIF_DATE_TIME_ORIGINAL, EXIF_ASCII,
                    20, 1, (void *)dateTime);
     }
@@ -4503,7 +4500,7 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
     int written;
             if (frameCnt >= 0 && frameCnt <= 10 ) {
                 char buf[128];
-                sprintf(buf, "/data/%d_preview.yuv", frameCnt);
+                snprintf(buffer, sizeof(buf), "/data/%d_preview.yuv", frameCnt);
                 int file_fd = open(buf, O_RDWR | O_CREAT, 0777);
                 LOGV("dumping preview frame %d", frameCnt);
                 if (file_fd < 0) {

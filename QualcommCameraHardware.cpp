@@ -3032,7 +3032,7 @@ bool QualcommCameraHardware::initPreview()
         mFrameThreadRunning = !pthread_create(&mFrameThread,
                                               &attr,
                                               frame_thread,
-                                              (void*)&(frame_parms));
+                                              /*(void*)&(frame_parms)*/NULL);
         ret = mFrameThreadRunning;
         mFrameThreadWaitLock.unlock();
     }

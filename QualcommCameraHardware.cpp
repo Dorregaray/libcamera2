@@ -3631,6 +3631,10 @@ void QualcommCameraHardware::stopPreview()
         if (mDataCallbackTimestamp && (mMsgEnabled & CAMERA_MSG_VIDEO_FRAME))
             return;
     }
+    if( mSnapshotThreadRunning ) {
+        LOGV("In stopPreview during snapshot");
+        return;
+    }
     stopPreviewInternal();
     LOGV("stopPreview: X");
 }

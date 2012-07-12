@@ -609,6 +609,7 @@ static const str_map scenemode[] = {
     { CameraParameters::SCENE_MODE_CANDLELIGHT,    CAMERA_BESTSHOT_CANDLELIGHT },
     { CameraParameters::SCENE_MODE_BACKLIGHT,      CAMERA_BESTSHOT_BACKLIGHT },
     { CameraParameters::SCENE_MODE_FLOWERS,        CAMERA_BESTSHOT_FLOWERS },
+    { CameraParameters::SCENE_MODE_AR,             CAMERA_BESTSHOT_AR },
 };
 
 static const str_map scenedetect[] = {

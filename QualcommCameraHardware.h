@@ -96,6 +96,7 @@ typedef enum {
     CAMERA_BESTSHOT_CANDLELIGHT,
     CAMERA_BESTSHOT_BACKLIGHT,
     CAMERA_BESTSHOT_FLOWERS,
+    CAMERA_BESTSHOT_AR,
 } camera_scene_mode_t;
 
 //From now on ... Total guesses ! no RE available afaik.

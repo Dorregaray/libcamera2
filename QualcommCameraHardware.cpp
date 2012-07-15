@@ -1670,7 +1670,7 @@ void QualcommCameraHardware::findSensorType(){
         unsigned int i;
         for (i = 0; i < sizeof(sensorTypes) / sizeof(SensorType); i++) {
             if (sensorTypes[i].rawPictureHeight
-                    == mDimension.orig_picture_dy) {
+                    == mDimension.raw_picture_height) {
                 sensorType = sensorTypes + i;
                 LOGV("sensorType: %s", sensorTypes[i].name);
                 return;

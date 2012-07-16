@@ -1151,7 +1151,8 @@ QualcommCameraHardware::QualcommCameraHardware()
       mResetOverlayCrop(false),
       mThumbnailWidth(0),
       mThumbnailHeight(0),
-      strTexturesOn(false)
+      strTexturesOn(false),
+      mPrevHeapDeallocRunning(false)
 {
     LOGI("QualcommCameraHardware constructor E");
     mMMCameraDLRef = MMCameraDL::getInstance();
@@ -2709,7 +2710,12 @@ void QualcommCameraHardware::runFrameThread(void *data)
         LOGV("after LINK_cam_frame");
     }
 
+    mPmemWaitLock.lock();
     mPreviewHeap.clear();
+    mPrevHeapDeallocRunning = true;
+    mPmemWait.signal();
+    mPmemWaitLock.unlock();
+
     if((mCurrentTarget == TARGET_MSM7630) || (mCurrentTarget == TARGET_QSD8250) || (mCurrentTarget == TARGET_MSM8660))
         mRecordHeap.clear();
 
@@ -2977,6 +2983,7 @@ bool QualcommCameraHardware::initPreview()
     mDimension.video_width = videoWidth;
     mDimension.video_height = videoHeight;
 
+    mPrevHeapDeallocRunning = false;
     mPreviewHeap = new PmemPool(pmem_region,
                                 MemoryHeapBase::READ_ONLY | MemoryHeapBase::NO_CACHING,
                                 mCameraControlFd,
@@ -3266,6 +3273,12 @@ bool QualcommCameraHardware::initRaw(bool initJpegHeap)
        pmem_region = "/dev/pmem_smipool";
     else
        pmem_region = "/dev/pmem_adsp";
+
+    mPmemWaitLock.lock();
+    if(!mPrevHeapDeallocRunning){
+       mPmemWait.wait(mPmemWaitLock);
+    }
+    mPmemWaitLock.unlock();
 
     LOGV("initRaw: initializing mRawHeap.");
     mRawHeap =

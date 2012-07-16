@@ -593,6 +593,9 @@ private:
     status_t setVpeParameters();
     status_t setDIS();
     bool strTexturesOn;
+    Mutex mPmemWaitLock;
+    Condition mPmemWait;
+    bool mPrevHeapDeallocRunning;
 };
 
 }; // namespace android

@@ -198,6 +198,7 @@ union zoomimage
 static const camera_size_type preview_sizes[] = {
     { 1920, 1088 }, //1080p
     { 1280, 720 }, // 720P, reserved
+    { 960, 720 },
     { 800, 480 }, // WVGA
     { 768, 432 },
     { 720, 480 },
@@ -219,7 +220,7 @@ board_property boardProperties[] = {
         {TARGET_MSM7625, 0x00000fff, false, false, false},
         {TARGET_MSM7627, 0x000006ff, false, false, false},
         {TARGET_MSM7630, 0x00000fff, true, true, false},
-        {TARGET_MSM8660, 0x00001fff, true, true, false},
+        {TARGET_MSM8660, 0x00002fff, true, true, false},
         {TARGET_QSD8250, 0x00000fff, false, false, false}
 };
 

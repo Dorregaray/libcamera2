@@ -1457,12 +1457,12 @@ void QualcommCameraHardware::initDefaultParameters()
             DEFAULT_FPS);
      }
     mParameters.setPreviewFrameRateMode("frame-rate-auto");
-    mParameters.setPreviewFormat("yuv420sp"); // informative
-    mParameters.set("overlay-format", "yuv420sp");
+    mParameters.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV420SP); // informative
+    mParameters.set("overlay-format", CameraParameters::PIXEL_FORMAT_YUV420SP);
 
     mParameters.setPictureSize(DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT);
     mParameters.setPictureFormat("jpeg"); // informative
-    mParameters.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, "yuv420sp");
+    mParameters.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV420SP);
 
     mParameters.set("power-mode-supported", "false");
 
@@ -1506,7 +1506,7 @@ void QualcommCameraHardware::initDefaultParameters()
     if( (mCurrentTarget != TARGET_MSM7630) && (mCurrentTarget != TARGET_QSD8250)
         && (mCurrentTarget != TARGET_MSM8660)) {
         mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS,
-                    "yuv420sp");
+                    CameraParameters::PIXEL_FORMAT_YUV420SP);
     }
     else {
         preview_format_values = create_values_str(

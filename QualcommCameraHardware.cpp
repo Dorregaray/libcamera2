@@ -237,6 +237,7 @@ static const camera_size_type picture_sizes[] = {
     { 2048, 1536 }, // 3MP QXGA
     { 1920, 1080 }, //HD1080
     { 1600, 1200 }, // 2MP UXGA
+    { 1280, 1024 }, //SXGA
     { 1280, 768 }, //WXGA
     { 1280, 720 }, //HD720
     { 1024, 768}, // 1MP XGA
@@ -818,7 +819,7 @@ static SensorType sensorTypes[] = {
         { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
         { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff },
-        { "mt9m113", 1280, 1024, false, 640, 480, 0x000000ff },//TouchPad Camera Sensor
+        { "mt9m113", 1280, 1024, false, 1280, 1024, 0x000000ff }, //TouchPad Camera Sensor
         { "ov7692", 640, 480, false, 640, 480, 0x000000ff } }; //Web Camera
 
 

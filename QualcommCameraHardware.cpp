@@ -5439,9 +5439,9 @@ bool QualcommCameraHardware::previewEnabled()
 status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)
 {
     const char *recordSize = NULL;
-    recordSize = params.get("record-size");
+    recordSize = params.get(CameraParameters::KEY_VIDEO_SIZE);
     if(!recordSize) {
-        mParameters.set("record-size", "");
+        mParameters.set(CameraParameters::KEY_VIDEO_SIZE, "");
         //If application didn't set this parameter string, use the values from
         //getPreviewSize() as video dimensions.
         LOGV("No Record Size requested, use the preview dimensions");
@@ -5451,7 +5451,7 @@ status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)
         //Extract the record witdh and height that application requested.
         LOGI("%s: requested record size %s", __FUNCTION__, recordSize);
         if(!parse_size(recordSize, videoWidth, videoHeight)) {
-            mParameters.set("record-size" , recordSize);
+            mParameters.set(CameraParameters::KEY_VIDEO_SIZE, recordSize);
             //VFE output1 shouldn't be greater than VFE output2.
             if( (previewWidth > videoWidth) || (previewHeight > videoHeight)) {
                 //Set preview sizes as record sizes.
@@ -5471,7 +5471,7 @@ status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)
                 mParameters.setPreviewSize(previewWidth, previewHeight);
             }
         } else {
-            mParameters.set("record-size", "");
+            mParameters.set(CameraParameters::KEY_VIDEO_SIZE, "");
             LOGE("initPreview X: failed to parse parameter record-size (%s)", recordSize);
             return BAD_VALUE;
         }

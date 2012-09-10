@@ -1333,8 +1333,9 @@ void QualcommCameraHardware::initDefaultParameters()
 
     findSensorType();
     hasAutoFocusSupport();
+
     //Disable DIS for Web Camera
-    if(!strcmp(sensorType->name, "ov7692"))
+    if(!strcmp(sensorType->name, "ov7692") || !strcmp(sensorType->name, "mt9m113"))
         mDisEnabled = 0;
 
     // Initialize constant parameter strings. This will happen only once in the

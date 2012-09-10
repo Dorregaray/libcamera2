@@ -4785,7 +4785,6 @@ status_t QualcommCameraHardware::setDIS() {
     disCtrl.video_rec_width = videoWidth;
     disCtrl.video_rec_height = videoHeight;
     disCtrl.output_cbcr_offset = video_frame_cbcroffset;
-    disCtrl.filler1 = 4;
 
     ret = native_set_parm(CAMERA_SET_VIDEO_DIS_PARAMS,
                        sizeof(disCtrl), &disCtrl);

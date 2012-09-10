@@ -59,8 +59,7 @@ typedef struct {
 	uint32_t dis_enable;
 	uint32_t video_rec_width;
 	uint32_t video_rec_height;
-	uint16_t output_cbcr_offset;
-	uint16_t filler1;
+	uint32_t output_cbcr_offset;
 } video_dis_param_ctrl_t;
 
 typedef uint8_t jpeg_event_t;

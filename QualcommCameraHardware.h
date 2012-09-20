@@ -37,14 +37,14 @@ extern "C" {
 #define FALSE 0
 
 typedef struct {
-    unsigned int in1_h;
-    unsigned int out1_h;
-    unsigned int in1_w;
-    unsigned int out1_w;
-    unsigned int in2_h;
-    unsigned int out2_w;
-    unsigned int in2_w;
-    unsigned int out2_h;
+    uint32_t in1_w;
+    uint32_t out1_w;
+    uint32_t in1_h;
+    uint32_t out1_h;
+    uint32_t in2_w;
+    uint32_t out2_w;
+    uint32_t in2_h;
+    uint32_t out2_h;
     uint8_t update_flag; 
 } common_crop_t;
 

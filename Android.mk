@@ -12,7 +12,9 @@ LOCAL_SRC_FILES:= QualcommCameraHardware.cpp
 
 LOCAL_CFLAGS:= -DDLOPEN_LIBMMCAMERA=$(DLOPEN_LIBMMCAMERA)
 
-ifeq "$(findstring msm7627,$(QCOM_TARGET_PRODUCT))" "msm7627"
+LOCAL_CFLAGS+= -DHW_ENCODE
+
+ifeq ($(call is-chipset-prefix-in-board-platform,msm7627),true)
 LOCAL_CFLAGS+= -DNUM_PREVIEW_BUFFERS=6 -D_ANDROID_
 else
 LOCAL_CFLAGS+= -DNUM_PREVIEW_BUFFERS=4 -D_ANDROID_
@@ -25,9 +27,16 @@ ifeq ($(BOARD_CAMERA_USE_GETBUFFERINFO),true)
     LOCAL_CFLAGS += -DUSE_GETBUFFERINFO
 endif
 
+# To Choose neon/C routines for YV12 conversion
+LOCAL_CFLAGS+= -DUSE_NEON_CONVERSION
+
 LOCAL_C_INCLUDES+= \
     $(TARGET_OUT_HEADERS)/mm-camera \
-    $(TARGET_OUT_HEADERS)/mm-still/jpeg \
+    $(TARGET_OUT_HEADERS)/mm-still/jpeg
+
+LOCAL_C_INCLUDES+= $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/media
+LOCAL_C_INCLUDES+= $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
+LOCAL_ADDITIONAL_DEPENDENCIES := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
 
 LOCAL_SHARED_LIBRARIES:= libutils libui libcamera_client liblog libcutils
 

@@ -1445,7 +1445,8 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.setPreviewFrameRate(DEFAULT_FPS);
     mParameters.setPreviewFpsRange(MINIMUM_FPS*1000, MAXIMUM_FPS*1000);
     if((strcmp(sensorType->name, "2mp")) &&
-       (strcmp(sensorType->name, "ov7692"))){
+       (strcmp(sensorType->name, "ov7692")) &&
+       (strcmp(sensorType->name, "mt9m113"))){
       mParameters.set(
             CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATES,
             preview_frame_rate_values.string());
@@ -1517,7 +1518,8 @@ void QualcommCameraHardware::initDefaultParameters()
     frame_rate_mode_values = create_values_str(
             frame_rate_modes, sizeof(frame_rate_modes) / sizeof(str_map));
     if((strcmp(sensorType->name, "2mp")) &&
-       (strcmp(sensorType->name, "ov7692"))){
+       (strcmp(sensorType->name, "ov7692")) &&
+       (strcmp(sensorType->name, "mt9m113"))){
         mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATE_MODES,
                     frame_rate_mode_values.string());
     }

@@ -15,7 +15,7 @@
 ** limitations under the License.
 */
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_NIDEBUG 0
 #define LOG_TAG "QualcommCameraHardware"
 #include <utils/Log.h>
@@ -87,8 +87,6 @@ typedef int liveshot_status;
 #define ACTIVE_VIDEO_BUFFERS 3
 
 #define APP_ORIENTATION 90
-
-#define LOGV LOGD
 
 #define DUMMY_CAMERA_STARTED 1
 #define DUMMY_CAMERA_STOPPED 0

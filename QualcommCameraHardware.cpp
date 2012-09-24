@@ -1158,6 +1158,7 @@ QualcommCameraHardware::QualcommCameraHardware()
     LOGI("QualcommCameraHardware constructor E");
     mMMCameraDLRef = MMCameraDL::getInstance();
     libmmcamera = mMMCameraDLRef->pointer();
+    LOGV("%s, libmmcamera: %p\n", libmmcamera, __FUNCTION__);
     char value[PROPERTY_VALUE_MAX];
 
     storeTargetType();
@@ -1696,6 +1697,7 @@ bool QualcommCameraHardware::startCamera()
         LOGE(" Unable to determine the target type. Camera will not work ");
         return false;
     }
+    LOGV("%s, libmmcamera: %p\n", libmmcamera, __FUNCTION__);
 #if DLOPEN_LIBMMCAMERA
     if (!libmmcamera) {
         LOGE("FATAL ERROR: could not dlopen liboemcamera.so: %s", dlerror());
@@ -2710,6 +2712,7 @@ void QualcommCameraHardware::runFrameThread(void *data)
 
     int cnt;
 
+    LOGV("%s, libmmcamera: %p\n", libmmcamera, __FUNCTION__);
     if(libmmcamera)
     {
         LOGV("before LINK_cam_frame, data: %p\n", data);
@@ -3686,6 +3689,7 @@ void QualcommCameraHardware::runAutoFocus()
         return;
     }
 
+    LOGV("%s, libmmcamera: %p\n", libmmcamera, __FUNCTION__);
     if(!libmmcamera){
         LOGE("FATAL ERROR: could not dlopen liboemcamera.so: %s", dlerror());
         close(mAutoFocusFd);
@@ -3859,6 +3863,7 @@ void QualcommCameraHardware::runSnapshotThread(void *data)
     CAMERA_HAL_UNUSED(data);
     LOGV("runSnapshotThread E");
 
+    LOGV("%s, libmmcamera: %p\n", libmmcamera, __FUNCTION__);
     if(!libmmcamera){
         LOGE("FATAL ERROR: could not dlopen liboemcamera.so: %s", dlerror());
     }
@@ -3894,6 +3899,7 @@ void QualcommCameraHardware::runSnapshotThread(void *data)
             }
             mJpegThreadWaitLock.unlock();
             //clear the resources
+            LOGV("%s, libmmcamera: %p\n", libmmcamera, __FUNCTION__);
             if(libmmcamera != NULL)
             {
                 LINK_jpeg_encoder_join();
@@ -6428,16 +6434,19 @@ QualcommCameraHardware::MMCameraDL::MMCameraDL(){
 }
 
 void * QualcommCameraHardware::MMCameraDL::pointer(){
+    LOGV("MMCameraDL::pointer(): EX");
     return libmmcamera;
 }
 
 QualcommCameraHardware::MMCameraDL::~MMCameraDL(){
     LOGV("~MMCameraDL: E");
+#if DLOPEN_LIBMMCAMERA
     if (libmmcamera != NULL) {
         ::dlclose(libmmcamera);
         LOGV("closed MM Camera DL ");
     }
     libmmcamera = NULL;
+#endif
     LOGV("~MMCameraDL: X");
 }
 
@@ -6446,12 +6455,14 @@ Mutex QualcommCameraHardware::MMCameraDL::singletonLock;
 
 
 sp<QualcommCameraHardware::MMCameraDL> QualcommCameraHardware::MMCameraDL::getInstance(){
+    LOGV("MMCameraDL::getInstance(): E");
     Mutex::Autolock instanceLock(singletonLock);
     sp<MMCameraDL> mmCamera = instance.promote();
     if(mmCamera == NULL){
         mmCamera = new MMCameraDL();
         instance = mmCamera;
     }
+    LOGV("MMCameraDL::getInstance(): X");
     return mmCamera;
 }
 

@@ -2990,8 +2990,10 @@ bool QualcommCameraHardware::initPreview()
                                sizeof(cam_ctrl_dimension_t), &mDimension);
 
     //Restore video_width and video_height that might have been zeroed
-    mDimension.video_width = videoWidth;
-    mDimension.video_height = videoHeight;
+    if (mDimension.video_width == 0 && mDimension.video_height == 0) {
+        mDimension.video_width = videoWidth;
+        mDimension.video_height = videoHeight;
+    }
 
     mPrevHeapDeallocRunning = false;
     mPreviewHeap = new PmemPool(pmem_region,

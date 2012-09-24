@@ -119,16 +119,16 @@ int8_t (*LINK_jpeg_encoder_get_buffer_offset)(uint32_t width, uint32_t height,
                                                uint32_t* p_y_offset,
                                                 uint32_t* p_cbcr_offset,
                                                  uint32_t* p_buf_size);
-int8_t (*LINK_jpeg_encoder_setLocation)(const camera_position_type *location);
-const struct camera_size_type *(*LINK_default_sensor_get_snapshot_sizes)(int *len);
+//int8_t (*LINK_jpeg_encoder_setLocation)(const camera_position_type *location);
+//const struct camera_size_type *(*LINK_default_sensor_get_snapshot_sizes)(int *len);
 int (*LINK_launch_cam_conf_thread)(void);
 int (*LINK_release_cam_conf_thread)(void);
-int8_t (*LINK_zoom_crop_upscale)(uint32_t width, uint32_t height,
-    uint32_t cropped_width, uint32_t cropped_height, uint8_t *img_buf);
+//int8_t (*LINK_zoom_crop_upscale)(uint32_t width, uint32_t height,
+//    uint32_t cropped_width, uint32_t cropped_height, uint8_t *img_buf);
 
 // callbacks
 void  (**LINK_mmcamera_shutter_callback)(common_crop_t *crop);
-void  (**LINK_mmcamera_liveshot_callback)(liveshot_status status, uint32_t jpeg_size);
+//void  (**LINK_mmcamera_liveshot_callback)(liveshot_status status, uint32_t jpeg_size);
 void  (**LINK_cancel_liveshot)(void);
 int8_t  (*LINK_set_liveshot_params)(uint32_t a_width, uint32_t a_height, exif_tags_info_t *a_exif_data,
                          int a_exif_numEntries, uint8_t* a_out_buffer, uint32_t a_outbuffer_size);
@@ -143,17 +143,17 @@ int8_t  (*LINK_set_liveshot_params)(uint32_t a_width, uint32_t a_height, exif_ta
 #define LINK_jpeg_encoder_setThumbnailQuality jpeg_encoder_setThumbnailQuality
 #define LINK_jpeg_encoder_setRotation jpeg_encoder_setRotation
 #define LINK_jpeg_encoder_get_buffer_offset jpeg_encoder_get_buffer_offset
-#define LINK_jpeg_encoder_setLocation jpeg_encoder_setLocation
-#define LINK_default_sensor_get_snapshot_sizes default_sensor_get_snapshot_sizes
+//#define LINK_jpeg_encoder_setLocation jpeg_encoder_setLocation
+//#define LINK_default_sensor_get_snapshot_sizes default_sensor_get_snapshot_sizes
 #define LINK_launch_cam_conf_thread launch_cam_conf_thread
 #define LINK_release_cam_conf_thread release_cam_conf_thread
-#define LINK_zoom_crop_upscale zoom_crop_upscale
+//#define LINK_zoom_crop_upscale zoom_crop_upscale
 extern void (*mmcamera_camframe_callback)(struct msm_frame *frame);
 extern void (*mmcamera_jpegfragment_callback)(uint8_t *buff_ptr,
                                       uint32_t buff_size);
 extern void (*mmcamera_jpeg_callback)(jpeg_event_t status);
 extern void (*mmcamera_shutter_callback)(common_crop_t *crop);
-extern void (*mmcamera_liveshot_callback)(liveshot_status status, uint32_t jpeg_size);
+//extern void (*mmcamera_liveshot_callback)(liveshot_status status, uint32_t jpeg_size);
 #define LINK_set_liveshot_params set_liveshot_params
 #endif
 
@@ -1782,7 +1782,7 @@ bool QualcommCameraHardware::startCamera()
     mmcamera_jpegfragment_callback = receive_jpeg_fragment_callback;
     mmcamera_jpeg_callback = receive_jpeg_callback;
     mmcamera_shutter_callback = receive_shutter_callback;
-    mmcamera_liveshot_callback = receive_liveshot_callback;
+//    mmcamera_liveshot_callback = receive_liveshot_callback;
 #endif // DLOPEN_LIBMMCAMERA
 
     /* The control thread is in libcamera itself. */

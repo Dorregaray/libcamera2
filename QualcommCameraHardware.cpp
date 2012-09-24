@@ -279,20 +279,20 @@ static thumbnail_size_type thumbnail_sizes[] = {
     { 6826, 480, 288 }, //1.666667
     { 6808, 256, 154 }, //1.662337
     { 6144, 432, 288 }, //1.5
-    { 5461, 512, 384 }, //1.333333
+    { 5461, 192, 144 }, //1.333333
     { 5006, 352, 288 }, //1.222222
 };
 #define THUMBNAIL_SIZE_COUNT (sizeof(thumbnail_sizes)/sizeof(thumbnail_size_type))
-#define DEFAULT_THUMBNAIL_SETTING 2
-#define THUMBNAIL_WIDTH_STR "256"
-#define THUMBNAIL_HEIGHT_STR "154"
-#define THUMBNAIL_SMALL_HEIGHT 154
+#define DEFAULT_THUMBNAIL_SETTING 4
+#define THUMBNAIL_WIDTH_STR "192"
+#define THUMBNAIL_HEIGHT_STR "144"
+#define THUMBNAIL_SMALL_HEIGHT 144
 static camera_size_type jpeg_thumbnail_sizes[]  = {
     { 512, 288 },
     { 480, 288 },
     { 256, 154 },
     { 432, 288 },
-    { 512, 384 },
+    { 192, 144 },
     { 352, 288 },
     {0,0}
 };

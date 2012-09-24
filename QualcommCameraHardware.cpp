@@ -297,7 +297,7 @@ static camera_size_type jpeg_thumbnail_sizes[]  = {
     {0,0}
 };
 //supported preview fps ranges should be added to this array in the form (minFps,maxFps)
-static  android::FPSRange FpsRangesSupported[] = {{MINIMUM_FPS*1000,MAXIMUM_FPS*1000}};
+static  android::FPSRange FpsRangesSupported[1] = {android::FPSRange(MINIMUM_FPS*1000,MAXIMUM_FPS*1000)};
 
 #define FPS_RANGES_SUPPORTED_COUNT (sizeof(FpsRangesSupported)/sizeof(FpsRangesSupported[0]))
 
@@ -4947,7 +4947,7 @@ void QualcommCameraHardware::releaseRecordingFrame(
         size_t size;
         sp<IMemoryHeap> heap = mem->getMemory(&offset, &size);
         msm_frame* releaseframe = NULL;
-        LOGV(" in release recording frame :  heap base %p offset %lu buffer %p ", heap->base(), offset, heap->base() + offset );
+        LOGV(" in release recording frame :  heap base %p offset %lu buffer %lx ", heap->base(), offset, (unsigned long)heap->base() + offset );
         int cnt;
         for (cnt = 0; cnt < kRecordBufferCount; cnt++) {
             if((unsigned int)recordframes[cnt].buffer == ((unsigned int)heap->base()+ offset)){

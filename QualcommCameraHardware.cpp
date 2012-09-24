@@ -108,7 +108,7 @@ void (*LINK_camframe_terminate)(void);
 // Function to add a video buffer to free Q
 void (*LINK_camframe_free_video)(struct msm_frame *frame);
 // Function pointer , called by camframe when a video frame is available.
-//void (**LINK_camframe_video_callback)(struct msm_frame * frame);
+void (**LINK_camframe_video_callback)(struct msm_frame * frame);
 // To flush free Q in cam frame.
 void (*LINK_cam_frame_flush_free_video)(void);
 
@@ -127,7 +127,6 @@ int (*LINK_release_cam_conf_thread)(void);
 //    uint32_t cropped_width, uint32_t cropped_height, uint8_t *img_buf);
 
 // callbacks
-void  (**LINK_mmcamera_camframe_callback)(struct msm_frame *frame);
 void  (**LINK_mmcamera_shutter_callback)(common_crop_t *crop);
 //void  (**LINK_mmcamera_liveshot_callback)(liveshot_status status, uint32_t jpeg_size);
 void  (**LINK_cancel_liveshot)(void);
@@ -1717,11 +1716,6 @@ bool QualcommCameraHardware::startCamera()
 
     *(void **)&LINK_jpeg_encoder_join =
         ::dlsym(libmmcamera, "jpeg_encoder_join");
-
-    *(void **)&LINK_mmcamera_camframe_callback =
-        ::dlsym(libmmcamera, "test_app_camframe_callback");
-
-    *LINK_mmcamera_camframe_callback = receive_camframe_callback;
 
     // 720 p new recording functions
     *(void **)&LINK_cam_frame_flush_free_video = ::dlsym(libmmcamera, "cam_frame_flush_free_video");

@@ -61,7 +61,7 @@ typedef struct exif_info_t * exif_info_obj_t;
 typedef enum {
   BACK_CAMERA,
   FRONT_CAMERA,
-}cam_position_t;
+} cam_position_t;
 
 typedef enum {
   CAM_CTRL_FAILED,        /* Failure in doing operation */
@@ -71,6 +71,13 @@ typedef enum {
   CAM_CTRL_ACCEPTED,      /* Parameter accepted */
   CAM_CTRL_MAX,
 } cam_ctrl_status_t;
+
+typedef enum {
+  CAMERA_PREVIEW_MODE_SNAPSHOT,
+  CAMERA_PREVIEW_MODE_MOVIE,
+  CAMERA_PREVIEW_MODE_MOVIE_120FPS,
+  CAMERA_MAX_PREVIEW_MODE
+} cam_preview_mode_t;
 
 typedef enum {
   CAMERA_YUV_420_NV12,
@@ -95,6 +102,11 @@ typedef enum {
   CAMERA_PAD_TO_4K,
   CAMERA_PAD_TO_8K
 } cam_pad_format_t;
+
+typedef struct {
+  uint16_t dispWidth;
+  uint16_t dispHeight;
+} cam_ctrl_disp_t;
 
 typedef struct {
   int ext_mode;   /* preview, main, thumbnail, video, raw, etc */
@@ -134,13 +146,11 @@ typedef struct {
   } payload;
 } cam_sock_packet_t;
 
-
 typedef enum {
   CAM_VIDEO_FRAME,
   CAM_SNAPSHOT_FRAME,
   CAM_PREVIEW_FRAME,
-}cam_frame_type_t;
-
+} cam_frame_type_t;
 
 typedef enum {
   CAMERA_MODE_2D = (1<<0),
@@ -150,19 +160,20 @@ typedef enum {
   CAMERA_MODE_MAX = CAMERA_ZSL_MODE,
 } camera_mode_t;
 
-
 typedef struct {
   int  modes_supported;
   int8_t camera_id;
   cam_position_t position;
   uint32_t sensor_mount_angle;
-}camera_info_t;
+  //uint32_t sensor_Orientation;
+  //struct fih_parameters_data parameters_data;
+} camera_info_t;
 
 typedef struct {
   camera_mode_t mode;
   int8_t camera_id;
-  camera_mode_t cammode;
-}config_params_t;
+  //camera_mode_t cammode;
+} config_params_t;
 
 typedef struct {
   uint32_t len;
@@ -193,20 +204,20 @@ typedef struct {
   uint32_t max_pict_height;
   uint32_t max_preview_width;
   uint32_t max_preview_height;
-  uint32_t max_video_width;
-  uint32_t max_video_height;
+  //uint32_t max_video_width;
+  //uint32_t max_video_height;
   uint32_t effect;
   camera_mode_t modes;
-  uint8_t preview_format;
-  uint32_t preview_sizes_cnt;
-  uint32_t thumb_sizes_cnt;
-  uint32_t video_sizes_cnt;
-  uint32_t hfr_sizes_cnt;
-  uint8_t vfe_output_enable;
-  uint8_t hfr_frame_skip;
-  uint32_t default_preview_width;
-  uint32_t default_preview_height;
-  uint32_t bestshot_reconfigure;
+  //uint8_t preview_format;
+  //uint32_t preview_sizes_cnt;
+  //uint32_t thumb_sizes_cnt;
+  //uint32_t video_sizes_cnt;
+  //uint32_t hfr_sizes_cnt;
+  //uint8_t vfe_output_enable;
+  //uint8_t hfr_frame_skip;
+  //uint32_t default_preview_width;
+  //uint32_t default_preview_height;
+  //uint32_t bestshot_reconfigure;
 }cam_prop_t;
 
 typedef struct {
@@ -247,13 +258,11 @@ typedef struct {
   cam_format_t    rdi0_format;
   cam_format_t    rdi1_format;
 #endif
-#if 0
   cam_pad_format_t prev_padding_format;
+#if 0
   cam_pad_format_t enc_padding_format;
   cam_pad_format_t thumb_padding_format;
   cam_pad_format_t main_padding_format;
-#else
-  uint32_t         filler1; /* FIXME */
 #endif
   uint16_t display_luma_width;
   uint16_t display_luma_height;
@@ -285,113 +294,121 @@ typedef struct {
 
 /* Add enumenrations at the bottom but before MM_CAMERA_PARM_MAX */
 typedef enum {
-    MM_CAMERA_PARM_PICT_SIZE,
-    MM_CAMERA_PARM_ZOOM_RATIO,
-    MM_CAMERA_PARM_HISTOGRAM,
-    MM_CAMERA_PARM_DIMENSION,
-    MM_CAMERA_PARM_FPS,
-    MM_CAMERA_PARM_FPS_MODE, /*5*/
-    MM_CAMERA_PARM_EFFECT,
-    MM_CAMERA_PARM_EXPOSURE_COMPENSATION,
-    MM_CAMERA_PARM_EXPOSURE,
-    MM_CAMERA_PARM_SHARPNESS,
-    MM_CAMERA_PARM_CONTRAST, /*10*/
-    MM_CAMERA_PARM_SATURATION,
-    MM_CAMERA_PARM_BRIGHTNESS,
-    MM_CAMERA_PARM_WHITE_BALANCE,
-    MM_CAMERA_PARM_LED_MODE,
-    MM_CAMERA_PARM_ANTIBANDING, /*15*/
-    MM_CAMERA_PARM_ROLLOFF,
-    MM_CAMERA_PARM_CONTINUOUS_AF,
-    MM_CAMERA_PARM_FOCUS_RECT,
-    MM_CAMERA_PARM_AEC_ROI,
-    MM_CAMERA_PARM_AF_ROI, /*20*/
-    MM_CAMERA_PARM_HJR,
-    MM_CAMERA_PARM_ISO,
-    MM_CAMERA_PARM_BL_DETECTION,
-    MM_CAMERA_PARM_SNOW_DETECTION,
-    MM_CAMERA_PARM_BESTSHOT_MODE, /*25*/
-    MM_CAMERA_PARM_ZOOM,
-    MM_CAMERA_PARM_VIDEO_DIS,
-    MM_CAMERA_PARM_VIDEO_ROT,
-    MM_CAMERA_PARM_SCE_FACTOR,
-    MM_CAMERA_PARM_FD, /*30*/
-    MM_CAMERA_PARM_MODE,
+    CAMERA_PARM_PICT_SIZE,
+    CAMERA_PARM_ZOOM_RATIO,
+    CAMERA_PARM_HISTOGRAM,
+    CAMERA_PARM_DIMENSION,
+    CAMERA_PARM_FPS,
+    CAMERA_PARM_FPS_MODE, /*5*/
+    CAMERA_PARM_EFFECT,
+    CAMERA_PARM_EXPOSURE_COMPENSATION,
+    CAMERA_PARM_EXPOSURE,
+    CAMERA_PARM_SHARPNESS,
+    CAMERA_PARM_CONTRAST, /*10*/
+    CAMERA_PARM_SATURATION,
+    CAMERA_PARM_BRIGHTNESS,
+    CAMERA_PARM_WHITE_BALANCE,
+    CAMERA_PARM_LED_MODE,
+    CAMERA_PARM_ANTIBANDING, /*15*/
+    CAMERA_PARM_ROLLOFF,
+    CAMERA_PARM_CONTINUOUS_AF,
+    CAMERA_PARM_FOCUS_RECT,
+    CAMERA_PARM_AEC_ROI,
+    CAMERA_PARM_AF_ROI, /*20*/
+    CAMERA_PARM_HJR,
+    CAMERA_PARM_ISO,
+    CAMERA_PARM_BL_DETECTION,
+    CAMERA_PARM_SNOW_DETECTION,
+    CAMERA_PARM_BESTSHOT_MODE, /*25*/
+    CAMERA_PARM_ZOOM,
+    CAMERA_PARM_VIDEO_DIS,
+    CAMERA_PARM_VIDEO_ROT,
+    CAMERA_PARM_SCE_FACTOR,
+    CAMERA_PARM_FD, /*30*/
+    CAMERA_PARM_MODE,
     /* 2nd 32 bits */
-    MM_CAMERA_PARM_3D_FRAME_FORMAT,
-    MM_CAMERA_PARM_CAMERA_ID,
-    MM_CAMERA_PARM_CAMERA_INFO,
-    MM_CAMERA_PARM_PREVIEW_SIZE, /*35*/
-    MM_CAMERA_PARM_QUERY_FALSH4SNAP,
-    MM_CAMERA_PARM_FOCUS_DISTANCES,
-    MM_CAMERA_PARM_BUFFER_INFO,
-    MM_CAMERA_PARM_JPEG_ROTATION,
-    MM_CAMERA_PARM_JPEG_MAINIMG_QUALITY, /* 40 */
-    MM_CAMERA_PARM_JPEG_THUMB_QUALITY,
-    MM_CAMERA_PARM_ZSL_ENABLE,
-    MM_CAMERA_PARM_FOCAL_LENGTH,
-    MM_CAMERA_PARM_HORIZONTAL_VIEW_ANGLE,
-    MM_CAMERA_PARM_VERTICAL_VIEW_ANGLE, /* 45 */
-    MM_CAMERA_PARM_MCE,
-    MM_CAMERA_PARM_RESET_LENS_TO_INFINITY,
-    MM_CAMERA_PARM_SNAPSHOTDATA,
-    MM_CAMERA_PARM_HFR,
-    MM_CAMERA_PARM_REDEYE_REDUCTION, /* 50 */
-    MM_CAMERA_PARM_WAVELET_DENOISE,
-    MM_CAMERA_PARM_3D_DISPLAY_DISTANCE,
-    MM_CAMERA_PARM_3D_VIEW_ANGLE,
-    MM_CAMERA_PARM_PREVIEW_FORMAT,
-    MM_CAMERA_PARM_RDI_FORMAT,
-    MM_CAMERA_PARM_HFR_SIZE, /* 55 */
-    MM_CAMERA_PARM_3D_EFFECT,
-    MM_CAMERA_PARM_3D_MANUAL_CONV_RANGE,
-    MM_CAMERA_PARM_3D_MANUAL_CONV_VALUE,
-    MM_CAMERA_PARM_ENABLE_3D_MANUAL_CONVERGENCE,
+    CAMERA_PARM_3D_FRAME_FORMAT,
+    CAMERA_PARM_CAMERA_ID,
+    CAMERA_PARM_CAMERA_INFO,
+    CAMERA_PARM_PREVIEW_SIZE, /*35*/
+    CAMERA_PARM_QUERY_FALSH4SNAP,
+    CAMERA_PARM_FOCUS_DISTANCES,
+    CAMERA_PARM_BUFFER_INFO,
+    CAMERA_PARM_JPEG_ROTATION,
+    CAMERA_PARM_JPEG_MAINIMG_QUALITY, /* 40 */
+    CAMERA_PARM_JPEG_THUMB_QUALITY,
+    CAMERA_PARM_ZSL_ENABLE,
+    CAMERA_PARM_FOCAL_LENGTH,
+    CAMERA_PARM_HORIZONTAL_VIEW_ANGLE,
+    CAMERA_PARM_VERTICAL_VIEW_ANGLE, /* 45 */
+    CAMERA_PARM_MCE,
+    CAMERA_PARM_RESET_LENS_TO_INFINITY,
+    CAMERA_PARM_SNAPSHOTDATA,
+    CAMERA_PARM_HFR,
+    CAMERA_PARM_REDEYE_REDUCTION, /* 50 */
+    CAMERA_PARM_WAVELET_DENOISE,
+    CAMERA_PARM_3D_DISPLAY_DISTANCE,
+    CAMERA_PARM_3D_VIEW_ANGLE,
+    CAMERA_PARM_PREVIEW_FORMAT,
+    CAMERA_PARM_RDI_FORMAT,
+    CAMERA_PARM_HFR_SIZE, /* 55 */
+    CAMERA_PARM_3D_EFFECT,
+    CAMERA_PARM_3D_MANUAL_CONV_RANGE,
+    CAMERA_PARM_3D_MANUAL_CONV_VALUE,
+    CAMERA_PARM_ENABLE_3D_MANUAL_CONVERGENCE,
     /* These are new parameters defined here */
-    MM_CAMERA_PARM_CH_IMAGE_FMT, /* 60 */       // mm_camera_ch_image_fmt_parm_t
-    MM_CAMERA_PARM_OP_MODE,             // camera state, sub state also
-    MM_CAMERA_PARM_SHARPNESS_CAP,       //
-    MM_CAMERA_PARM_SNAPSHOT_BURST_NUM,  // num shots per snapshot action
-    MM_CAMERA_PARM_LIVESHOT_MAIN,       // enable/disable full size live shot
-    MM_CAMERA_PARM_MAXZOOM, /* 65 */
-    MM_CAMERA_PARM_LUMA_ADAPTATION,     // enable/disable
-    MM_CAMERA_PARM_HDR,
-    MM_CAMERA_PARM_CROP,
-    MM_CAMERA_PARM_MAX_PICTURE_SIZE,
-    MM_CAMERA_PARM_MAX_PREVIEW_SIZE, /* 70 */
-    MM_CAMERA_PARM_ASD_ENABLE,
-    MM_CAMERA_PARM_RECORDING_HINT,
-    MM_CAMERA_PARM_CAF_ENABLE,
-    MM_CAMERA_PARM_FULL_LIVESHOT,
-    MM_CAMERA_PARM_DIS_ENABLE, /* 75 */
-    MM_CAMERA_PARM_AEC_LOCK,
-    MM_CAMERA_PARM_AWB_LOCK,
-    MM_CAMERA_PARM_AF_MTR_AREA,
-    MM_CAMERA_PARM_AEC_MTR_AREA,
-    MM_CAMERA_PARM_LOW_POWER_MODE,
-    MM_CAMERA_PARM_MAX_HFR_MODE, /* 80 */
-    MM_CAMERA_PARM_MAX_VIDEO_SIZE,
-    MM_CAMERA_PARM_DEF_PREVIEW_SIZES,
-    MM_CAMERA_PARM_DEF_VIDEO_SIZES,
-    MM_CAMERA_PARM_DEF_THUMB_SIZES,
-    MM_CAMERA_PARM_DEF_HFR_SIZES,
-    MM_CAMERA_PARM_PREVIEW_SIZES_CNT,
-    MM_CAMERA_PARM_VIDEO_SIZES_CNT,
-    MM_CAMERA_PARM_THUMB_SIZES_CNT,
-    MM_CAMERA_PARM_HFR_SIZES_CNT,
-    MM_CAMERA_PARM_GRALLOC_USAGE,
-    MM_CAMERA_PARM_VFE_OUTPUT_ENABLE, //to check whether both oputputs are
-    MM_CAMERA_PARM_DEFAULT_PREVIEW_WIDTH,
-    MM_CAMERA_PARM_DEFAULT_PREVIEW_HEIGHT,
-    MM_CAMERA_PARM_FOCUS_MODE,
-    MM_CAMERA_PARM_HFR_FRAME_SKIP,
-    MM_CAMERA_PARM_CH_INTERFACE,
+    CAMERA_PARM_CH_IMAGE_FMT, /* 60 */       // mm_camera_ch_image_fmt_parm_t
+    CAMERA_PARM_OP_MODE,             // camera state, sub state also
+    CAMERA_PARM_SHARPNESS_CAP,       //
+    CAMERA_PARM_SNAPSHOT_BURST_NUM,  // num shots per snapshot action
+    CAMERA_PARM_LIVESHOT_MAIN,       // enable/disable full size live shot
+    CAMERA_PARM_MAXZOOM, /* 65 */
+    CAMERA_PARM_LUMA_ADAPTATION,     // enable/disable
+    CAMERA_PARM_HDR,
+    CAMERA_PARM_CROP,
+    CAMERA_PARM_MAX_PICTURE_SIZE,
+    CAMERA_PARM_MAX_PREVIEW_SIZE, /* 70 */
+    CAMERA_PARM_ASD_ENABLE,
+    CAMERA_PARM_RECORDING_HINT,
+    CAMERA_PARM_CAF_ENABLE,
+    CAMERA_PARM_FULL_LIVESHOT,
+    CAMERA_PARM_DIS_ENABLE, /* 75 */
+    CAMERA_PARM_AEC_LOCK,
+    CAMERA_PARM_AWB_LOCK,
+    CAMERA_PARM_AF_MTR_AREA,
+    CAMERA_PARM_AEC_MTR_AREA,
+    CAMERA_PARM_LOW_POWER_MODE,
+    CAMERA_PARM_MAX_HFR_MODE, /* 80 */
+    CAMERA_PARM_MAX_VIDEO_SIZE,
+    CAMERA_PARM_DEF_PREVIEW_SIZES,
+    CAMERA_PARM_DEF_VIDEO_SIZES,
+    CAMERA_PARM_DEF_THUMB_SIZES,
+    CAMERA_PARM_DEF_HFR_SIZES,
+    CAMERA_PARM_PREVIEW_SIZES_CNT,
+    CAMERA_PARM_VIDEO_SIZES_CNT,
+    CAMERA_PARM_THUMB_SIZES_CNT,
+    CAMERA_PARM_HFR_SIZES_CNT,
+    CAMERA_PARM_GRALLOC_USAGE,
+    CAMERA_PARM_VFE_OUTPUT_ENABLE, //to check whether both oputputs are
+    CAMERA_PARM_DEFAULT_PREVIEW_WIDTH,
+    CAMERA_PARM_DEFAULT_PREVIEW_HEIGHT,
+    CAMERA_PARM_FOCUS_MODE,
+    CAMERA_PARM_HFR_FRAME_SKIP,
+    CAMERA_PARM_CH_INTERFACE,
     //or single output enabled to differentiate 7x27a with others
-    MM_CAMERA_PARM_BESTSHOT_RECONFIGURE,
-    MM_CAMERA_MAX_NUM_FACES_DECT,
-    MM_CAMERA_PARM_FPS_RANGE,
-    MM_CAMERA_PARM_MAX
+    CAMERA_PARM_BESTSHOT_RECONFIGURE,
+    CAMERA_MAX_NUM_FACES_DECT,
+    CAMERA_PARM_FPS_RANGE,
+    CAMERA_PARM_MAX
 } mm_camera_parm_type_t;
+
+typedef struct {
+  int pic_width;
+  int pic_hight;
+  int prev_width;
+  int prev_hight;
+  int rotation;
+} cam_ctrl_set_dimension_data_t;
 
 typedef enum {
   STREAM_IMAGE,
@@ -556,6 +573,426 @@ typedef enum {
   CAMERA_ERROR_MAX
 } camera_error_type;
 
+typedef enum {
+  CAMERA_SUCCESS = 0,
+  CAMERA_INVALID_STATE,
+  CAMERA_INVALID_PARM,
+  CAMERA_INVALID_FORMAT,
+  CAMERA_NO_SENSOR,
+  CAMERA_NO_MEMORY,
+  CAMERA_NOT_SUPPORTED,
+  CAMERA_FAILED,
+  CAMERA_INVALID_STAND_ALONE_FORMAT,
+  CAMERA_MALLOC_FAILED_STAND_ALONE,
+  CAMERA_RET_CODE_MAX
+} camera_ret_code_type;
+
+typedef enum {
+  CAMERA_RAW,
+  CAMERA_JPEG,
+  CAMERA_PNG,
+  CAMERA_YCBCR_ENCODE,
+  CAMERA_ENCODE_TYPE_MAX
+} camera_encode_type;
+
+#if !defined FEATURE_CAMERA_ENCODE_PROPERTIES && defined FEATURE_CAMERA_V7
+typedef enum {
+  CAMERA_SNAPSHOT,
+  CAMERA_RAW_SNAPSHOT
+} camera_snapshot_type;
+#endif /* nFEATURE_CAMERA_ENCODE_PROPERTIES && FEATURE_CAMERA_V7 */
+
+typedef enum {
+  /* YCbCr, each pixel is two bytes. Two pixels form a unit.
+   * MSB is Y, LSB is CB for the first pixel and CR for the second pixel. */
+  CAMERA_YCBCR,
+#ifdef FEATURE_CAMERA_V7
+  CAMERA_YCBCR_4_2_0,
+  CAMERA_YCBCR_4_2_2,
+  CAMERA_H1V1,
+  CAMERA_H2V1,
+  CAMERA_H1V2,
+  CAMERA_H2V2,
+  CAMERA_BAYER_8BIT,
+  CAMERA_BAYER_10BIT,
+#endif /* FEATURE_CAMERA_V7 */
+  /* RGB565, each pixel is two bytes.
+   * MS 5-bit is red, the next 6-bit is green. LS 5-bit is blue. */
+  CAMERA_RGB565,
+  /* RGB666, each pixel is four bytes.
+   * MS 14 bits are zeros, the next 6-bit is red, then 6-bit of green.
+   * LS 5-bit is blue. */
+  CAMERA_RGB666,
+  /* RGB444, each pixel is 2 bytes. The MS 4 bits are zeros, the next
+   * 4 bits are red, the next 4 bits are green. The LS 4 bits are blue. */
+  CAMERA_RGB444,
+  /* Bayer, each pixel is 1 bytes. 2x2 pixels form a unit.
+   * First line: first byte is blue, second byte is green.
+   * Second line: first byte is green, second byte is red. */
+  CAMERA_BAYER_BGGR,
+  /* Bayer, each pixel is 1 bytes. 2x2 pixels form a unit.
+   * First line: first byte is green, second byte is blue.
+   * Second line: first byte is red, second byte is green. */
+  CAMERA_BAYER_GBRG,
+  /* Bayer, each pixel is 1 bytes. 2x2 pixels form a unit.
+   * First line: first byte is green, second byte is red.
+   * Second line: first byte is blue, second byte is green. */
+  CAMERA_BAYER_GRBG,
+  /* Bayer, each pixel is 1 bytes. 2x2 pixels form a unit.
+   * First line: first byte is red, second byte is green.
+   * Second line: first byte is green, second byte is blue. */
+  CAMERA_BAYER_RGGB,
+  /* RGB888, each pixel is 3 bytes. R is 8 bits, G is 8 bits,
+   * B is 8 bits*/
+  CAMERA_RGB888
+} camera_format_type;
+
+typedef enum {
+  CAMERA_ORIENTATION_LANDSCAPE,
+  CAMERA_ORIENTATION_PORTRAIT
+} camera_orientation_type;
+
+typedef enum {
+  CAMERA_DESCRIPTION_STRING,
+  CAMERA_USER_COMMENT_STRING,
+  CAMERA_GPS_AREA_INFORMATION_STRING
+} camera_string_type;
+
+typedef enum {
+  CAM_STATS_TYPE_HIST,
+  CAM_STATS_TYPE_MAX
+} camstats_type;
+
+typedef struct {
+  int32_t  buffer[256];       /* buffer to hold data */
+  int32_t  max_value;
+} camera_preview_histogram_info;
+
+typedef struct {
+  /* Format of the frame */
+  camera_format_type format;
+
+  /* For pre-V7, Width and height of the picture.
+   * For V7:
+   *   Snapshot:     thumbnail dimension
+   *   Raw Snapshot: not applicable
+   *   Preview:      not applicable
+   */
+  uint16_t dx;
+  uint16_t dy;
+  /* For pre_V7: For BAYER format, RAW data before scaling.
+   * For V7:
+   *   Snapshot:     Main image dimension
+   *   Raw snapshot: raw image dimension
+   *   Preview:      preview image dimension
+   */
+  uint16_t captured_dx;
+  uint16_t captured_dy;
+  /* it indicates the degree of clockwise rotation that should be
+   * applied to obtain the exact view of the captured image. */
+  uint16_t rotation;
+
+#ifdef FEATURE_CAMERA_V7
+  /* Preview:      not applicable
+   * Raw shapshot: not applicable
+   * Snapshot:     thumbnail image buffer
+   */
+  uint8_t *thumbnail_image;
+#endif /* FEATURE_CAMERA_V7 */
+
+  /* For pre-V7:
+   *   Image buffer ptr
+   * For V7:
+   *   Preview: preview image buffer ptr
+   *   Raw snapshot: Raw image buffer ptr
+   *   Shapshot:     Main image buffer ptr
+   */
+  uint8_t  *buffer;
+} camera_frame_type;
+
+typedef struct {
+  uint16_t  uMode;        // Input / Output AAC mode
+  uint32_t  dwFrequency;  // Sampling Frequency
+  uint16_t  uQuality;     // Audio Quality
+  uint32_t  dwReserved;   // Reserved for future use
+} camera_aac_encoding_info_type;
+
+typedef enum {
+  TIFF_DATA_BYTE = 1,
+  TIFF_DATA_ASCII = 2,
+  TIFF_DATA_SHORT = 3,
+  TIFF_DATA_LONG = 4,
+  TIFF_DATA_RATIONAL = 5,
+  TIFF_DATA_UNDEFINED = 7,
+  TIFF_DATA_SLONG = 9,
+  TIFF_DATA_SRATIONAL = 10
+} tiff_data_type;
+
+typedef enum {
+  ZERO_IFD = 0, /* This must match AEECamera.h */
+  FIRST_IFD,
+  EXIF_IFD,
+  GPS_IFD,
+  INTEROP_IFD,
+  DEFAULT_IFD
+} camera_ifd_type;
+
+typedef struct {
+  uint16_t tag_id;
+  camera_ifd_type ifd;
+  tiff_data_type type;
+  uint16_t count;
+  void     *value;
+} camera_exif_tag_type;
+
+typedef struct {
+  /* What is the ID for this sensor */
+  uint16_t sensor_id;
+  /* Sensor model number, null terminated, trancate to 31 characters */
+  char sensor_model[32];
+  /* Width and height of the sensor */
+  uint16_t sensor_width;
+  uint16_t sensor_height;
+  /* Frames per second */
+  uint16_t fps;
+  /* Whether the device driver can sense when sensor is rotated */
+  int8_t  sensor_rotation_sensing;
+  /* How the sensor are installed */
+  uint16_t default_rotation;
+  camera_orientation_type default_orientation;
+  /*To check antibanding support */
+  int8_t  support_auto_antibanding;
+} camera_info_type;
+
+typedef struct {
+  int32_t                quality;
+  camera_encode_type     format;
+  int32_t                file_size;
+} camera_encode_properties_type;
+
+typedef enum {
+  CAMERA_DEVICE_MEM,
+  CAMERA_DEVICE_EFS,
+  CAMERA_DEVICE_MAX
+} camera_device_type;
+
+#define MAX_JPEG_ENCODE_BUF_NUM 4
+#define MAX_JPEG_ENCODE_BUF_LEN (1024*8)
+
+typedef struct {
+  uint32_t buf_len;/* Length of each buffer */
+  uint32_t used_len;
+  int8_t   valid;
+  uint8_t  *buffer;
+} camera_encode_mem_type;
+
+typedef struct {
+  camera_device_type     device;
+#ifndef FEATURE_CAMERA_ENCODE_PROPERTIES
+  int32_t                quality;
+  camera_encode_type     format;
+#endif /* nFEATURE_CAMERA_ENCODE_PROPERTIES */
+  int32_t                encBuf_num;
+  camera_encode_mem_type encBuf[MAX_JPEG_ENCODE_BUF_NUM];
+} camera_handle_mem_type;
+
+#ifdef FEATURE_EFS
+typedef struct {
+  camera_device_type     device;
+  #ifndef FEATURE_CAMERA_ENCODE_PROPERTIES
+  int32_t                quality;
+  camera_encode_type     format;
+  #endif /* nFEATURE_CAMERA_ENCODE_PROPERTIES */
+  char                   filename[FS_FILENAME_MAX_LENGTH_P];
+} camera_handle_efs_type;
+#endif /* FEATURE_EFS */
+
+typedef enum {
+  CAMERA_PARM_FADE_OFF,
+  CAMERA_PARM_FADE_IN,
+  CAMERA_PARM_FADE_OUT,
+  CAMERA_PARM_FADE_IN_OUT,
+  CAMERA_PARM_FADE_MAX
+} camera_fading_type;
+
+typedef union {
+  camera_device_type      device;
+  camera_handle_mem_type  mem;
+} camera_handle_type;
+
+typedef enum {
+  CAMERA_AUTO_FOCUS,
+  CAMERA_MANUAL_FOCUS
+} camera_focus_e_type;
+
+/* AEC: Frame average weights the whole preview window equally
+   AEC: Center Weighted weights the middle X percent of the window
+   X percent compared to the rest of the frame
+   AEC: Spot metering weights the very center regions 100% and
+   discounts other areas                                        */
+typedef enum {
+  CAMERA_AEC_FRAME_AVERAGE,
+  CAMERA_AEC_CENTER_WEIGHTED,
+  CAMERA_AEC_SPOT_METERING,
+  CAMERA_AEC_MAX_MODES
+} camera_auto_exposure_mode_type;
+
+/* Auto focus mode, used for CAMERA_PARM_AF_MODE */
+typedef enum {
+  AF_MODE_UNCHANGED = -1,
+  AF_MODE_NORMAL    = 0,
+  AF_MODE_MACRO,
+  AF_MODE_AUTO,
+  AF_MODE_MAX
+} isp3a_af_mode_t;
+
+/* VFE Focus Region:
+ *  VFE input image dimension
+ * VFE Focus Window:
+ *  A rectangle in the VFE Focus Region. VFE Focus Window
+ *  area must not exceed one quarter of the area of VFE Focus
+ *  Region.
+ * Display Focus Region:
+ *  Diplay dimensions (not LCD dimensions)
+ * Display Focus Window:
+ *  A rectangle in Display Focus Region
+ *  Focus Window Freedom: Movement of Focus Window in x and y direction.
+ */
+
+typedef  struct {
+  /* Focus Window dimensions, could be negative. */
+  int16_t x;
+  int16_t y;
+  int16_t dx;
+  int16_t dy;
+
+  /* Focus Window Freedom granularity in x-direction */
+  int16_t dx_step_size;
+
+  /* Focus Window Freedom granularity in y-direction */
+  int16_t dy_step_size;
+
+  /*  Focus Window can only move within this Focus Region and
+   *  the maximum Focus Window area must not exceed one quarter of the
+   *  Focus Region.
+   */
+  int16_t min_x;
+  int16_t min_y;
+  int16_t max_x;
+  int16_t max_y;
+} camera_focus_window_type;
+
+typedef unsigned int Offline_Input_PixelSizeType;
+typedef uint16_t Offline_Snapshot_PixelSizeType;
+typedef uint16_t Offline_Thumbnail_PixelSizeType;
+typedef uint16_t Offline_NumFragments_For_Input;
+typedef uint16_t Offline_NumFragments_For_Output;
+
+typedef  struct {
+  /* Focus Window dimensions */
+  int16_t x_upper_left;
+  int16_t y_upper_left;
+  int16_t width;
+  int16_t height;
+} camera_focus_rectangle_dimensions_type;
+
+typedef  struct {
+  int16_t focus_window_count;
+  camera_focus_rectangle_dimensions_type *windows_list;
+} camera_focus_window_rectangles_type;
+
+typedef enum Offline_InputFormatType {
+  CAMERA_BAYER_G_B,
+  CAMERA_BAYER_B_G,
+  CAMERA_BAYER_G_R,
+  CAMERA_BAYER_R_G,
+  CAMERA_YCbCr_Y_Cb_Y_Cr,
+  CAMERA_YCbCr_Y_Cr_Y_Cb,
+  CAMERA_YCbCr_Cb_Y_Cr_Y,
+  CAMERA_YCbCr_Cr_Y_Cb_Y,
+  CAMERA_YCbCr_4_2_2_linepacked,
+  CAMERA_YCbCr_4_2_0_linepacked,
+  CAMERA_NumberOf_InputFormatType   /* Used for count purposes only */
+} Offline_InputFormatType;
+
+typedef enum Offline_YCbCr_InputCositingType {
+  CAMERA_CHROMA_NOT_COSITED,
+  CAMERA_CHROMA_COSITED,
+  CAMERA_NumberOf_YCbCr_InputCositingType   /* Used for count purposes only */
+} Offline_YCbCr_InputCositingType;
+
+typedef enum Offline_Input_PixelDataWidthType {
+  CAMERA_8Bit,
+  CAMERA_10Bit,
+  CAMERA_NumberOf_PixelDataWidthType /* Used for count purposes only */
+} Offline_Input_PixelDataWidthType;
+
+typedef struct OfflineInputConfigurationType {
+  Offline_YCbCr_InputCositingType  YCbCrCositing    ;
+  Offline_InputFormatType          format           ;
+  Offline_Input_PixelDataWidthType dataWidth        ;
+  Offline_Input_PixelSizeType      height           ;
+  Offline_Input_PixelSizeType      width            ;
+  Offline_Thumbnail_PixelSizeType  thumbnail_width  ;
+  Offline_Thumbnail_PixelSizeType  thumbnail_height ;
+  Offline_Snapshot_PixelSizeType   snapshot_width   ;
+  Offline_Snapshot_PixelSizeType   snapshot_height  ;
+  char*                            file_name        ;
+  Offline_NumFragments_For_Input   input_fragments  ;
+  Offline_NumFragments_For_Output  output_fragments ;
+} OfflineInputConfigurationType;
+
+/* Enum Type for bracketing support */
+typedef enum {
+  CAMERA_BRACKETING_OFF,
+  CAMERA_BRACKETING_EXPOSURE,
+  CAMERA_BRACKETING_MAX
+} camera_bracketing_mode_type;
+
+typedef struct la_config {
+  /* Pointer in input image - input */
+  uint8_t *data_in;
+  /* Luma re-mapping curve - output */
+  uint16_t *la_curve;
+  /* Detect - if 1 image needs LA , if 0 does not - output */
+  int16_t detect;
+  /* input image size - input */
+  uint32_t size;
+  /* Old gamma correction LUT - input */
+  uint8_t *gamma;
+  /* New gamma correction LUT - output */
+  uint8_t *gamma_new;
+  /* Chroma scale value - output */
+  uint32_t chroma_scale_Q20;
+
+  /* Detection related parameters - inputs*/
+  /****************************************/
+  uint8_t low_range;
+  uint16_t low_perc_Q11;
+  uint8_t high_range;
+  uint16_t high_perc_Q11;
+
+  /* Capping of the histogram - input*/
+  uint16_t cap_Q10;
+
+  /* The range to test if diffusion shift is needed - input*/
+  uint8_t diff_range;
+  /* The percentile to test if diffusion shift is needed - input*/
+  uint16_t diff_tail_threshold_Q8;
+
+  /* Scale how much to include contrast tranform
+     0 - no contrast transform, 32 - all is contrast transform   - input*/
+  uint16_t scale;
+
+  /* Cap high final re-mapping function - input */
+  uint16_t cap_high_Q2;
+  /* Cap low final re-mapping function - input */
+  uint16_t cap_low_Q2;
+  /* Number of itterations for the diffusion */
+  uint16_t numIt;
+
+} la_config;
+
 #if defined CAMERA_ANTIBANDING_OFF
 #undef CAMERA_ANTIBANDING_OFF
 #endif
@@ -594,6 +1031,51 @@ typedef enum {
   CAMERA_ISO_MAX
 } camera_iso_mode_type;
 
+typedef enum {
+  STROBE_FLASH_MODE_OFF,
+  STROBE_FLASH_MODE_AUTO,
+  STROBE_FLASH_MODE_ON,
+  STROBE_FLASH_MODE_MAX,
+} strobe_flash_mode_t;
+
+/* Clockwise */
+typedef enum {
+  CAMERA_ENCODING_ROTATE_0,
+  CAMERA_ENCODING_ROTATE_90,
+  CAMERA_ENCODING_ROTATE_180,
+  CAMERA_ENCODING_ROTATE_270
+} camera_encoding_rotate_t;
+
+typedef enum {
+  MOTION_ISO_OFF,
+  MOTION_ISO_ON
+} motion_iso_t;
+
+typedef enum {
+  FPS_MODE_AUTO,
+  FPS_MODE_FIXED,
+} fps_mode_t;
+
+typedef struct {
+  int32_t minimum_value; /* Minimum allowed value */
+  int32_t maximum_value; /* Maximum allowed value */
+  int32_t step_value;    /* step value */
+  int32_t default_value; /* Default value */
+  int32_t current_value; /* Current value */
+} cam_parm_info_t;
+
+typedef struct {
+  struct msm_ctrl_cmd ctrlCmd;
+  int fd;
+  void (*af_cb)(int8_t );
+  int8_t is_camafctrl_thread_join;
+  isp3a_af_mode_t af_mode;
+} cam_af_ctrl_t;
+
+typedef enum {
+  CAF_OFF,
+  CAF_ON
+} caf_ctrl_t;
 
 typedef enum {
   AEC_ROI_OFF,
@@ -711,6 +1193,7 @@ typedef struct {
   uint32_t total_hal_frames;
   char values[MAX_EXP_BRACKETING_LENGTH];  /* user defined values */
 } exp_bracketing_t;
+
 typedef struct {
   roi_t      mtr_area[MAX_ROI];
   uint32_t   num_area;
@@ -722,6 +1205,20 @@ typedef struct {
   int process_plates;
 } denoise_param_t;
 
+/* to select no vignette correction, luma vignette correction */
+/* or bayer vignette correction */
+typedef enum {
+  CAMERA_NO_VIGNETTE_CORRECTION,
+  CAMERA_LUMA_VIGNETTE_CORRECTION,
+  CAMERA_BAYER_VIGNETTE_CORRECTION
+} camera_vc_mode_type;
+
+typedef enum {
+  CAMERA_BVCM_DISABLE,
+  CAMERA_BVCM_RAW_CAPTURE,
+  CAMERA_BVCM_OFFLINE_CAPTURE
+} camera_bvcm_capture_type;
+
 #ifndef HAVE_CAMERA_SIZE_TYPE
   #define HAVE_CAMERA_SIZE_TYPE
 struct camera_size_type {
@@ -730,17 +1227,43 @@ struct camera_size_type {
 };
 #endif
 
+/* Sensor position type, used for CAMERA_PARM_SENSOR_POSITION */
+typedef enum {
+  CAMERA_SP_NORMAL = 0,
+  CAMERA_SP_REVERSE,
+} camera_sp_type;
+
+/* Exposure type, used for CAMERA_PARM_EXPOSURE */
+typedef enum {
+  CAMERA_EXPOSURE_MIN_MINUS_1,
+  CAMERA_EXPOSURE_AUTO = 1,  /* This list must match aeecamera.h */
+  CAMERA_EXPOSURE_DAY,
+  CAMERA_EXPOSURE_NIGHT,
+  CAMERA_EXPOSURE_LANDSCAPE,
+  CAMERA_EXPOSURE_STRONG_LIGHT,
+  CAMERA_EXPOSURE_SPOTLIGHT,
+  CAMERA_EXPOSURE_PORTRAIT,
+  CAMERA_EXPOSURE_MOVING,
+  CAMERA_EXPOSURE_MAX_PLUS_1
+} camera_exposure_type;
+
+typedef enum {
+  CAMERA_NIGHTSHOT_MODE_OFF,
+  CAMERA_NIGHTSHOT_MODE_ON,
+  CAMERA_MAX_NIGHTSHOT_MODE
+} camera_nightshot_mode_type;
+
 typedef struct {
   uint32_t yoffset;
   uint32_t cbcr_offset;
   uint32_t size;
   struct camera_size_type resolution;
-}cam_buf_info_t;
+} cam_buf_info_t;
 
 typedef struct {
   int x;
   int y;
-}cam_point_t;
+} cam_point_t;
 
 typedef struct {
   /* AF parameters */
@@ -767,6 +1290,77 @@ typedef enum {
   CAMERA_HFR_MODE_150FPS,
 } camera_hfr_mode_t;
 
+typedef struct video_frame_info {
+  /* NOTE !!!! Important:  It's recommended to make sure both
+     w/h of the buffer & image are 32x. When rotation is needed,
+     the values in this data structure is POST-rotation. */
+
+  uint32_t               y_buffer_width;     /* y plane */
+  uint32_t               cbcr_buffer_width;  /* cbcr plane */
+  uint32_t               image_width;        /**< original image width.   */
+  uint32_t               image_height;       /**< original image height. */
+  uint32_t               color_format;
+} video_frame_info;
+
+typedef enum VIDEO_ROT_ENUM {
+  ROT_NONE               = 0,
+  ROT_CLOCKWISE_90       = 1,
+  ROT_CLOCKWISE_180      = 6,
+  ROT_CLOCKWISE_270      = 7,
+} VIDEO_ROT_ENUM;
+
+typedef struct video_rotation_param_ctrl_t {
+  VIDEO_ROT_ENUM rotation; /* 0 degree = rot disable. */
+} video_rotation_param_ctrl_t;
+
+typedef struct {
+  uint32_t               dis_enable;  /* DIS feature: 1 = enable, 0 = disable.
+                                           when enable, caller makes sure w/h are 10% more. */
+  VIDEO_ROT_ENUM         rotation;        /* when rotation = 0, that also means it is disabled.*/
+  video_frame_info       input_frame;
+  video_frame_info       output_frame;
+} video_param_ctrl_t;
+
+void *cam_conf (void *data);
+int launch_cam_conf_thread(void);
+int wait_cam_conf_ready(void);
+int release_cam_conf_thread(void);
+void set_config_start_params(config_params_t*);
+int launch_camafctrl_thread(cam_af_ctrl_t *pAfctrl);
+/* Stats */
+typedef enum {
+  CAM_STATS_MSG_HIST,
+  CAM_STATS_MSG_EXIT
+}camstats_msg_type;
+
+/* Stats messages */
+typedef struct {
+  camstats_msg_type msg_type;
+  union {
+    camera_preview_histogram_info hist_data;
+  } msg_data;
+} camstats_msg;
+/*cam stats thread*/
+int launch_camstats_thread(void);
+void release_camstats_thread(void);
+int8_t send_camstats(camstats_type msg_type, void* data, int size);
+int8_t send_camstats_msg(camstats_type stats_type, camstats_msg* p_msg);
+int is_camstats_thread_running(void);
+
+/* cam frame*/
+typedef struct {
+  cam_preview_mode_t m;
+} cam_frame_start_parms;
+
+int launch_camframe_thread(cam_frame_start_parms* parms);
+void release_camframe_thread(void);
+void camframe_terminate(void);
+void *cam_frame(void *data);
+/*sends the free frame of given type to mm-camera*/
+int8_t camframe_add_frame(cam_frame_type_t, struct msm_frame*);
+/*release all frames of given type*/
+int8_t camframe_release_all_frames(cam_frame_type_t);
+
 /* frame Q*/
 struct fifo_node
 {
@@ -774,7 +1368,6 @@ struct fifo_node
   void *f;
 };
 
-#if 0 /* TODO: change the implementation of enqueue/dequeue in QualcommCameraHardware.h */
 struct fifo_queue
 {
   int num_of_frames;
@@ -784,15 +1377,36 @@ struct fifo_queue
   pthread_cond_t wait;
   char* name;
 };
-#else
-struct fifo_queue {
-  int num_of_frames;
-  int front;
-  struct fifo_node *node;
-  pthread_mutex_t mut;
-  pthread_cond_t wait;
+
+enum focus_distance_index{
+  FOCUS_DISTANCE_NEAR_INDEX,  /* 0 */
+  FOCUS_DISTANCE_OPTIMAL_INDEX,
+  FOCUS_DISTANCE_FAR_INDEX,
+  FOCUS_DISTANCE_MAX_INDEX
 };
-#endif
+
+typedef struct {
+  float focus_distance[FOCUS_DISTANCE_MAX_INDEX];
+} focus_distances_info_t;
+
+struct msm_frame* get_frame(struct fifo_queue* queue);
+int8_t add_frame(struct fifo_queue* queue, struct msm_frame *p);
+void flush_queue (struct fifo_queue* queue);
+void wait_queue (struct fifo_queue* queue);
+void signal_queue (struct fifo_queue* queue);
+
+/* Display */
+typedef struct {
+    uint16_t user_input_display_width;
+    uint16_t user_input_display_height;
+} USER_INPUT_DISPLAY_T;
+int launch_camframe_fb_thread(void);
+void release_camframe_fb_thread(void);
+void use_overlay_fb_display_driver(void);
+
+/* v4L2 */
+void *v4l2_cam_frame(void *data);
+void release_v4l2frame_thread(pthread_t frame_thread);
 
 typedef struct {
   uint32_t buf_len;
@@ -809,7 +1423,7 @@ typedef enum {
   MM_CAMERA_CTRL_EVT_WDN_DONE, // wavelet denoise done
   MM_CAMERA_CTRL_EVT_ERROR,
   MM_CAMERA_CTRL_EVT_MAX
-}mm_camera_ctrl_event_type_t;
+} mm_camera_ctrl_event_type_t;
 
 typedef struct {
   mm_camera_ctrl_event_type_t evt;
@@ -824,7 +1438,7 @@ typedef enum {
   MM_CAMERA_CH_EVT_DATA_DELIVERY_DONE,
   MM_CAMERA_CH_EVT_DATA_REQUEST_MORE,
   MM_CAMERA_CH_EVT_MAX
-}mm_camera_ch_event_type_t;
+} mm_camera_ch_event_type_t;
 
 typedef struct {
   uint32_t ch;
@@ -886,13 +1500,19 @@ typedef struct {
   uint8_t idx;
   fd_face_type face;
 } fd_roi_data_type;
-
+/*
 struct fd_roi_t {
   fd_roi_type_t type;
   union {
     fd_roi_header_type hdr;
     fd_roi_data_type data;
   } d;
+};
+*/
+struct fd_roi_t {
+    uint32_t frame_id;
+    int16_t rect_num;
+    struct fd_rect_t faces[MAX_ROI];
 };
 
 typedef struct  {
@@ -937,5 +1557,124 @@ int exif_set_tag(exif_info_obj_t    obj,
                  exif_tag_id_t      tag_id,
                  exif_tag_entry_t  *p_entry);
 
+
+typedef enum {
+  MM_CAMERA_SUCCESS,
+  MM_CAMERA_ERR_GENERAL,
+  MM_CAMERA_ERR_NO_MEMORY,
+  MM_CAMERA_ERR_NOT_SUPPORTED,
+  MM_CAMERA_ERR_INVALID_INPUT,
+  MM_CAMERA_ERR_INVALID_OPERATION,
+  MM_CAMERA_ERR_ENCODE,
+  MM_CAMERA_ERR_BUFFER_REG,
+  MM_CAMERA_ERR_PMEM_ALLOC,
+  MM_CAMERA_ERR_CAPTURE_FAILED,
+  MM_CAMERA_ERR_CAPTURE_TIMEOUT,
+} mm_camera_status_t;
+
+typedef struct {
+  uint8_t* ptr;
+  uint32_t actual_size;
+  uint32_t size;
+  int32_t fd;
+  uint32_t offset;
+} mm_camera_buffer_t;
+
+typedef enum {
+  CAMERA_OPS_STREAMING_PREVIEW,
+  CAMERA_OPS_STREAMING_ZSL,
+  CAMERA_OPS_STREAMING_VIDEO,
+  CAMERA_OPS_CAPTURE, /*not supported*/
+  CAMERA_OPS_FOCUS,
+  CAMERA_OPS_GET_PICTURE, /*5*/
+  CAMERA_OPS_PREPARE_SNAPSHOT,
+  CAMERA_OPS_SNAPSHOT,
+  CAMERA_OPS_LIVESHOT,
+  CAMERA_OPS_RAW_SNAPSHOT,
+  CAMERA_OPS_VIDEO_RECORDING, /*10*/
+  CAMERA_OPS_REGISTER_BUFFER,
+  CAMERA_OPS_UNREGISTER_BUFFER,
+  CAMERA_OPS_SENSOR_RESET,
+} mm_camera_ops_type_t;
+
+typedef struct {
+  mm_camera_status_t (*mm_camera_start) (mm_camera_ops_type_t ops_type,
+    void* parm1, void* parm2);
+  mm_camera_status_t(*mm_camera_stop) (mm_camera_ops_type_t ops_type,
+    void* parm1, void* parm2);
+  int8_t (*mm_camera_is_supported) (mm_camera_ops_type_t ops_type);
+} mm_camera_ops;
+
+typedef enum {
+  FRAME_READY,
+  SNAPSHOT_DONE,
+  SNAPSHOT_FAILED,
+  JPEG_ENC_DONE,
+  JPEG_ENC_FAILED,
+} mm_camera_event_type;
+
+typedef struct {
+  mm_camera_event_type event_type;
+  union {
+   mm_camera_buffer_t* encoded_frame;
+   struct msm_frame* preview_frame;
+  }event_data;
+} mm_camera_event;
+
+typedef struct {
+  mm_camera_status_t (*mm_camera_query_parms) (mm_camera_parm_type_t parm_type,
+    void** pp_values, uint32_t* p_count);
+  mm_camera_status_t (*mm_camera_set_parm) (mm_camera_parm_type_t parm_type,
+    void* p_value);
+  mm_camera_status_t(*mm_camera_get_parm) (mm_camera_parm_type_t parm_type,
+    void* p_value);
+  int8_t (*mm_camera_is_supported) (mm_camera_parm_type_t parm_type);
+  int8_t (*mm_camera_is_parm_supported) (mm_camera_parm_type_t parm_type,
+   void* sub_parm);
+} mm_camera_config;
+
+typedef enum {
+  LIVESHOT_SUCCESS,
+  LIVESHOT_ENCODE_ERROR,
+  LIVESHOT_UNKNOWN_ERROR,
+} liveshot_status;
+
+typedef struct {
+  int8_t (*on_event)(mm_camera_event* evt);
+  void (*video_frame_cb) (struct msm_frame *);
+  void (*preview_frame_cb) (struct msm_frame *);
+  void (*on_error_event) (camera_error_type err);
+  void (*camstats_cb) (camstats_type, camera_preview_histogram_info*);
+  void (*jpegfragment_cb)(uint8_t *, uint32_t);
+  void (*on_jpeg_event)(uint32_t status);
+  void (*on_liveshot_event)(liveshot_status status, uint32_t jpeg_size);
+} mm_camera_notify;
+
+static struct fifo_node* dequeue(struct fifo_queue* q) {
+  struct fifo_node *tmp = q->front;
+
+  if (!tmp)
+      return 0;
+  if (q->front == q->back)
+      q->front = q->back = 0;
+  else if (q->front)
+          q->front = q->front->next;
+  tmp->next = 0;
+  q->num_of_frames -=1;
+  return tmp;
+}
+
+static void enqueue(struct fifo_queue* q, struct fifo_node*p) {
+  if (q->back) {
+      q->back->next = p;
+      q->back = p;
+  }
+  else {
+      q->front = p;
+      q->back = p;
+  }
+  q->num_of_frames +=1;
+  return;
+}
 
 #endif /* __QCAMERA_INTF_H__ */

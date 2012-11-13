@@ -27,8 +27,8 @@
 
 extern "C" {
 #include <linux/android_pmem.h>
-#include "QCamera_Intf.h"
 #include "msm_camera.h"
+#include "QCamera_Intf.h"
 }
 // Extra propriatary stuff (mostly from CM)
 #define MSM_CAMERA_CONTROL "/dev/msm_camera/control0"
@@ -98,19 +98,6 @@ typedef enum {
     CAMERA_BESTSHOT_AR,
 } camera_scene_mode_t;
 
-//From now on ... Total guesses ! no RE available afaik.
-typedef enum {
-	AF_MODE_NORMAL=0,
-	AF_MODE_MACRO=1,
-	AF_MODE_AUTO=2,
-} isp3a_af_mode_t;
-
-enum {
-	CAMERA_AEC_FRAME_AVERAGE,
-	CAMERA_AEC_CENTER_WEIGHTED,
-	CAMERA_AEC_SPOT_METERING,
-};
-
 enum {
 	LED_MODE_OFF,
 	LED_MODE_ON,
@@ -118,36 +105,6 @@ enum {
 	LED_MODE_TORCH
 };
 
-void enqueue(struct fifo_queue *queue, struct fifo_node *node) {
-	struct fifo_node *cur_node=queue->node;
-	int i;
-	LOGE("enqueue:%p(%d)\n", node, queue->num_of_frames);
-	node->next=NULL;
-	if(queue->num_of_frames==0) {
-		queue->num_of_frames++;
-		queue->front=!!queue->num_of_frames;
-		queue->node=node;
-		return;
-	}
-	queue->num_of_frames++;
-	queue->front=!!queue->num_of_frames;
-	for(i=0;i<(queue->num_of_frames-2);++i) {
-		cur_node=cur_node->next;
-		assert(!!cur_node);
-	}
-	cur_node->next=node;
-}
-
-struct fifo_node *dequeue(struct fifo_queue *queue) {
-	if(queue->num_of_frames==0)
-		return NULL;
-	struct fifo_node *node=queue->node;
-	LOGE("dequeue:%p(%d)\n", node, queue->num_of_frames);
-	queue->num_of_frames--;
-	queue->front=!!queue->num_of_frames;
-	queue->node=queue->node->next;
-	return node;
-}
 #define CAMERA_MIN_CONTRAST 0
 #define CAMERA_MAX_CONTRAST 255
 #define CAMERA_MIN_SHARPNESS 0
@@ -181,12 +138,6 @@ typedef enum {
 	CAMERA_CB_MAX
 } camera_cb_type;
 
-struct cam_frame_start_parms {
-	unsigned int prout;
-	struct msm_frame frame;
-	struct msm_frame video_frame;
-};
-
 #define EXIFTAGID_GPS_LATITUDE_REF        0x10001
 #define EXIFTAGID_GPS_LATITUDE            0x20002
 #define EXIFTAGID_GPS_LONGITUDE_REF       0x30003
@@ -194,11 +145,13 @@ struct cam_frame_start_parms {
 #define EXIFTAGID_GPS_ALTITUDE_REF        0x50005
 #define EXIFTAGID_GPS_ALTITUDE            0x60006
 #define EXIFTAGID_GPS_TIMESTAMP           0x70007
-#define EXIFTAGID_GPS_DATESTAMP           0x0001D /* FIXME */
+#define EXIFTAGID_GPS_DATESTAMP           0x1D001D
 #define EXIFTAGID_EXIF_CAMERA_MAKER       0x21010F
 #define EXIFTAGID_EXIF_CAMERA_MODEL       0x220110
 #define EXIFTAGID_EXIF_DATE_TIME_ORIGINAL 0x3A9003
 #define EXIFTAGID_EXIF_DATE_TIME          0x3B9004
+#define EXIFTAGID_EXIF_DATE_TIME_CREATED  0x3b9004
+#define EXIFTAGID_FOCAL_LENGTH            0x45920a
 
 typedef enum {
     AUTO,

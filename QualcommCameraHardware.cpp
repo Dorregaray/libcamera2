@@ -250,6 +250,7 @@ static int PICTURE_SIZE_COUNT = sizeof(picture_sizes)/sizeof(camera_size_type);
 static const camera_size_type * picture_sizes_ptr;
 static int supportedPictureSizesCount;
 static liveshotState liveshot_state = LIVESHOT_DONE;
+static int sensor_rotation = 0;
 
 #ifdef Q12
 #undef Q12
@@ -4795,7 +4796,7 @@ status_t QualcommCameraHardware::setVpeParameters()
 
     LOGV("videoWidth = %d, videoHeight = %d", videoWidth, videoHeight);
 
-    int rotation = (mRotation + sensor_rotation)%360;
+    int rotation = (mRotation + sensor_rotation) % 360;
     rotCtrl.rotation = (rotation == 0) ? ROT_NONE :
                        ((rotation == 90) ? ROT_CLOCKWISE_90 :
                   ((rotation == 180) ? ROT_CLOCKWISE_180 : ROT_CLOCKWISE_270));
@@ -6285,12 +6286,11 @@ status_t QualcommCameraHardware::setRotation(const CameraParameters& params)
 {
     status_t rc = NO_ERROR;
     LOGV("%s E", __FUNCTION__);
-    int sensor_mount_angle = HAL_cameraInfo[HAL_currentCameraId].sensor_mount_angle;
     int rotation = params.getInt(CameraParameters::KEY_ROTATION);
     if (rotation != NOT_FOUND) {
         if (rotation == 0 || rotation == 90 || rotation == 180
             || rotation == 270) {
-          rotation = (rotation + sensor_mount_angle)%360;
+          rotation = (rotation + sensor_rotation)%360;
           mParameters.set(CameraParameters::KEY_ROTATION, rotation);
           mRotation = rotation;
         } else {
@@ -7102,6 +7102,7 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
                 cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
 
             LOGI("%s: orientation = %d", __FUNCTION__, cameraInfo->orientation);
+            sensor_rotation = HAL_cameraInfo[i].sensor_mount_angle;
             cameraInfo->mode = 0;
             if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_2D)
                 cameraInfo->mode |= CAMERA_SUPPORT_MODE_2D;

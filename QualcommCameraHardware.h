@@ -245,29 +245,31 @@ public:
 
     void receivePreviewFrame(struct msm_frame *frame);
     void receiveLiveSnapshot(uint32_t jpeg_size);
+    void receiveCameraStats(camstats_type stype, camera_preview_histogram_info* histinfo);
     void receiveRecordingFrame(struct msm_frame *frame);
     void receiveJpegPicture(void);
     void jpeg_set_location();
     void receiveJpegPictureFragment(uint8_t *buf, uint32_t size);
     void notifyShutter(common_crop_t *crop, bool mPlayShutterSoundOnly);
-    void receive_camframetimeout();
+    void receive_camframe_error_timeout();
     static void getCameraInfo();
 
 private:
     QualcommCameraHardware();
     virtual ~QualcommCameraHardware();
     status_t startPreviewInternal();
+    status_t setHistogramOn();
+    status_t setHistogramOff();
     status_t runFaceDetection();
     status_t setFaceDetection(const char *str);
-
     void stopPreviewInternal();
     friend void *auto_focus_thread(void *user);
     void runAutoFocus();
     status_t cancelAutoFocusInternal();
     bool native_set_dimension (int camfd);
     bool native_jpeg_encode (void);
-    bool native_set_parm(cam_ctrl_type type, uint16_t length, void *value);
-    bool native_set_parm(cam_ctrl_type type, uint16_t length, void *value, int *result);
+    bool native_set_parms(mm_camera_parm_type_t type, uint16_t length, void *value);
+    bool native_set_parms( mm_camera_parm_type_t type, uint16_t length, void *value, int *result);
     bool native_zoom_image(int fd, int srcOffset, int dstOffset, common_crop_t *crop);
 
     status_t startInitialPreview();
@@ -360,6 +362,7 @@ private:
     sp<PmemPool> mRawHeap;
     sp<PmemPool> mDisplayHeap;
     sp<AshmemPool> mJpegHeap;
+    sp<AshmemPool> mStatHeap;
     sp<AshmemPool> mMetaDataHeap;
     sp<PmemPool> mRawSnapShotPmemHeap;
     sp<PmemPool> mPostViewHeap;
@@ -390,6 +393,13 @@ private:
     Condition mVideoThreadWait;
     friend void *video_thread(void *user);
     void runVideoThread(void *data);
+
+    // For Histogram
+    int mStatsOn;
+    int mCurrent;
+    bool mSendData;
+    Mutex mStatsWaitLock;
+    Condition mStatsWait;
 
     //For Face Detection
     int mFaceDetectOn;
@@ -494,6 +504,7 @@ private:
     int                 mRawSize;
     int                 mCbCrOffsetRaw;
     int                 mJpegMaxSize;
+    int32_t             mStatSize;
 
 #if DLOPEN_LIBMMCAMERA
     void *libmmcamera;
@@ -504,7 +515,6 @@ private:
     cam_ctrl_dimension_t mDimension;
     bool mAutoFocusThreadRunning;
     Mutex mAutoFocusThreadLock;
-    int mAutoFocusFd;
 
     Mutex mAfLock;
 
@@ -535,7 +545,9 @@ private:
     int kPreviewBufferCountActual;
     int previewWidth, previewHeight;
     bool mSnapshotDone;
+    bool mSnapshotPrepare;
     bool mHasAutoFocusSupport;
+    mm_camera_config mCfgControl;
     int videoWidth, videoHeight;
 
     bool mDisEnabled;

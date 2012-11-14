@@ -62,7 +62,7 @@ typedef struct {
 	uint32_t output_cbcr_offset;
 } video_dis_param_ctrl_t;
 
-typedef uint8_t jpeg_event_t;
+typedef uint32_t jpeg_event_t;
 
 typedef enum {
 	CAMERA_WB_MIN_MINUS_1,
@@ -341,7 +341,7 @@ private:
 
     struct PmemPool : public MemPool {
         PmemPool(const char *pmem_pool,
-                 int control_camera_fd, int flags, int pmem_type,
+                 int flags, int pmem_type,
                  int buffer_size, int num_buffers,
                  int frame_size, int cbcr_offset,
                  int yoffset, const char *name);
@@ -439,7 +439,6 @@ private:
     bool supportsFaceDetection();
 
     void initDefaultParameters();
-    void findSensorType();
 
     status_t setPreviewSize(const CameraParameters& params);
     status_t setJpegThumbnailSize(const CameraParameters& params);
@@ -510,8 +509,6 @@ private:
     void *libmmcamera;
 #endif
 
-    int mCameraControlFd;
-    struct msm_camsensor_info mSensorInfo;
     cam_ctrl_dimension_t mDimension;
     bool mAutoFocusThreadRunning;
     Mutex mAutoFocusThreadLock;
@@ -546,6 +543,8 @@ private:
     int previewWidth, previewHeight;
     bool mSnapshotDone;
     bool mSnapshotPrepare;
+    int maxSnapshotWidth;
+    int maxSnapshotHeight;
     bool mHasAutoFocusSupport;
     mm_camera_config mCfgControl;
     int videoWidth, videoHeight;

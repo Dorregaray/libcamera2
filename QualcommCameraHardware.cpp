@@ -3072,7 +3072,7 @@ status_t QualcommCameraHardware::startPreviewInternal()
         deinitPreview();
         mPreviewInitialized = false;
         mOverlayLock.lock();
-        //mOverlay = NULL; /* do not NULL overlay */
+        mOverlay = NULL;
         mOverlayLock.unlock();
         LOGE("startPreview X: native_start_ops: CAMERA_OPS_STREAMING_PREVIEW ioctl failed!");
         return UNKNOWN_ERROR;

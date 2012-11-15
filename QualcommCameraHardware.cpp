@@ -5027,6 +5027,13 @@ void QualcommCameraHardware::receiveJpegPicture(void)
 bool QualcommCameraHardware::previewEnabled()
 {
     LOGV("%s E", __FUNCTION__);
+    /* On ICS there's a bit different order of the calls:
+     * the mOverlay is being set if previewEnabled returns true.
+     * Also the CAMERA_MSG_PREVIEW_FRAME is not being set but
+     * CAMERA_MSG_PREVIEW_METADATA is set so I'm using it.
+     */
+    if (mUseOverlay)
+        return mDataCallback && (mMsgEnabled & CAMERA_MSG_PREVIEW_METADATA);
 
     /* If overlay is used the message CAMERA_MSG_PREVIEW_FRAME would
      * be disabled at CameraService layer. Hence previewEnabled would
@@ -5034,9 +5041,8 @@ bool QualcommCameraHardware::previewEnabled()
      * mOverlay not being NULL to ensure that previewEnabled returns
      * accurate information.
      */
-    return mCameraRunning;
-//    return mCameraRunning && mDataCallback &&
-//           ((mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) || (mOverlay != NULL));
+    return mCameraRunning && mDataCallback &&
+           ((mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) || (mOverlay != NULL));
 }
 
 status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)

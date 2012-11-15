@@ -1371,7 +1371,6 @@ void QualcommCameraHardware::initDefaultParameters()
         parameter_string_initialized = true;
     }
 
-    mParameters.setVideoSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
     mParameters.setPreviewSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
     mDimension.display_width = DEFAULT_PREVIEW_WIDTH;
     mDimension.display_height = DEFAULT_PREVIEW_HEIGHT;
@@ -1461,8 +1460,8 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_SIZES,
                     preview_size_values.string());
 
-    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES,
-                    preview_size_values.string());
+    //mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES,
+    //                preview_size_values.string());
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_PICTURE_SIZES,
                     picture_size_values.string());

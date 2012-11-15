@@ -3745,7 +3745,6 @@ status_t QualcommCameraHardware::setHistogramOff()
 
 status_t QualcommCameraHardware::runFaceDetection()
 {
-#if 1
     bool ret = true;
 
     const char *str = mParameters.get(CameraParameters::KEY_FACE_DETECTION);
@@ -3780,7 +3779,6 @@ status_t QualcommCameraHardware::runFaceDetection()
         return ret ? NO_ERROR : UNKNOWN_ERROR;
     }
     LOGE("Invalid Face Detection value: %s", (str == NULL) ? "NULL" : str);
-#endif
     return BAD_VALUE;
 }
 
@@ -4222,8 +4220,8 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
                 }
             }
             memcpy((uint32_t *)mMetaDataHeap->mHeap->base(), (uint32_t *)array, (sizeof(int)*(MAX_ROI*4+1)));
-            if  (mcb != NULL && (msgEnabled & CAMERA_MSG_META_DATA)) {
-                mcb(CAMERA_MSG_META_DATA, mMetaDataHeap->mBuffers[0], mdata);
+            if  (mcb != NULL && (msgEnabled & CAMERA_MSG_PREVIEW_METADATA)) {
+                mcb(CAMERA_MSG_PREVIEW_METADATA, mMetaDataHeap->mBuffers[0], mdata);
             }
         }
         mMetaDataWaitLock.unlock();
@@ -6367,7 +6365,7 @@ bool QualcommCameraHardware::useOverlay(void)
     LOGV("%s E", __FUNCTION__);
     if((mCurrentTarget == TARGET_MSM7630) || (mCurrentTarget == TARGET_MSM8660)) {
         /* 7x30 and 8x60 supports Overlay */
-        mUseOverlay = TRUE; /* TODO: consider disabling to workaround overlay stuff */
+        mUseOverlay = TRUE;
     } else
         mUseOverlay = FALSE;
 

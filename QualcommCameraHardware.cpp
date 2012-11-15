@@ -1308,11 +1308,14 @@ void QualcommCameraHardware::initDefaultParameters()
 
         picture_format_values = create_values_str(
             picture_formats, sizeof(picture_formats)/sizeof(str_map));
-        
-	if(mHasAutoFocusSupport){
+
+        if(mHasAutoFocusSupport){
             continuous_af_values = create_values_str(
                 continuous_af, sizeof(continuous_af) / sizeof(str_map));
         }
+
+        /* Hardcode the zoom values as the mm_camera_query_parms(CAMERA_PARM_ZOOM_RATIO fails */
+#if 0
         if( mCfgControl.mm_camera_query_parms(CAMERA_PARM_ZOOM_RATIO, (void **)&zoomRatios, (uint32_t *) &mMaxZoom) == MM_CAMERA_SUCCESS)
         {
             zoomSupported = true;
@@ -1332,6 +1335,11 @@ void QualcommCameraHardware::initDefaultParameters()
                     "zoom to zero");
             mMaxZoom = 0;
         }
+#else
+        zoomSupported = true;
+        mMaxZoom = 61;
+        zoom_ratio_values =  "100,102,104,107,109,112,114,117,120,123,125,128,131,135,138,141,144,148,151,155,158,162,166,170,174,178,182,186,190,195,200,204,209,214,219,224,229,235,240,246,251,257,263,270,276,282,289,296,303,310,317,324,332,340,348,356,364,373,381,390,400";
+#endif
         preview_frame_rate_values = create_values_range_str(
             MINIMUM_FPS, MAXIMUM_FPS);
 
@@ -1355,7 +1363,7 @@ void QualcommCameraHardware::initDefaultParameters()
         parameter_string_initialized = true;
     }
 
-    mParameters.setVideoSize(DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT);
+    mParameters.setVideoSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
     mParameters.setPreviewSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
     mDimension.display_width = DEFAULT_PREVIEW_WIDTH;
     mDimension.display_height = DEFAULT_PREVIEW_HEIGHT;
@@ -5880,8 +5888,10 @@ status_t QualcommCameraHardware::setZoom(const CameraParameters& params)
     // size is. Ex: zoom level 1 is always 1.2x, zoom level 2 is 1.44x, etc. So,
     // we need to have a fixed maximum zoom value and do read it from the
     // driver.
+#if 0
     static const int ZOOM_STEP = 1;
     int32_t zoom_level = params.getInt("zoom");
+    LOGV("Set zoom, level=%d", zoom_level);
     if(zoom_level >= 0 && zoom_level <= mMaxZoom-1) {
         mParameters.set("zoom", zoom_level);
         int32_t zoom_value = ZOOM_STEP * zoom_level;
@@ -5891,7 +5901,7 @@ status_t QualcommCameraHardware::setZoom(const CameraParameters& params)
     } else {
         rc = BAD_VALUE;
     }
-
+#endif
     return rc;
 }
 

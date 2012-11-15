@@ -87,9 +87,6 @@ extern "C" {
 
 #define APP_ORIENTATION 90
 
-#define DUMMY_CAMERA_STARTED 1
-#define DUMMY_CAMERA_STOPPED 0
-
 #if DLOPEN_LIBMMCAMERA
 #include <dlfcn.h>
 
@@ -3074,22 +3071,10 @@ status_t QualcommCameraHardware::startPreviewInternal()
     return NO_ERROR;
 }
 
-status_t QualcommCameraHardware::startInitialPreview() {
-    mCameraRunning = DUMMY_CAMERA_STARTED;
-    return NO_ERROR;
-}
-
 status_t QualcommCameraHardware::startPreview()
 {
-    status_t result;
     LOGV("startPreview E");
     Mutex::Autolock l(&mLock);
-    mOverlayLock.lock();
-    if (mOverlay == NULL) {
-        mOverlayLock.unlock();
-        return startInitialPreview();
-    }
-    mOverlayLock.unlock();
     return startPreviewInternal();
 }
 

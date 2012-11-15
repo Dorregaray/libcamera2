@@ -735,6 +735,11 @@ static const str_map lensshade[] = {
     { CameraParameters::LENSSHADE_DISABLE, FALSE }
 };
 
+static const str_map histogram[] = {
+    { CameraParameters::HISTOGRAM_ENABLE, TRUE },
+    { CameraParameters::HISTOGRAM_DISABLE, FALSE }
+};
+
 static const str_map skinToneEnhancement[] = {
     { CameraParameters::SKIN_TONE_ENHANCEMENT_ENABLE, TRUE },
     { CameraParameters::SKIN_TONE_ENHANCEMENT_DISABLE, FALSE }
@@ -1293,6 +1298,12 @@ void QualcommCameraHardware::initDefaultParameters()
         lensshade_values = create_values_str(
             lensshade,sizeof(lensshade)/sizeof(str_map));
 
+        //Currently Enabling Histogram for 8x60
+        if(mCurrentTarget == TARGET_MSM8660) {
+            histogram_values = create_values_str(
+                histogram,sizeof(histogram)/sizeof(str_map));
+        }
+
         //Currently Enabling Skin Tone Enhancement for 8x60 and 7630
         if((mCurrentTarget == TARGET_MSM8660)||(mCurrentTarget == TARGET_MSM7630)) {
             skinToneEnhancement_values = create_values_str(
@@ -1526,6 +1537,10 @@ void QualcommCameraHardware::initDefaultParameters()
                     iso_values);
     mParameters.set(CameraParameters::KEY_SUPPORTED_LENSSHADE_MODES,
                     lensshade_values);
+    mParameters.set(CameraParameters::KEY_HISTOGRAM,
+                    CameraParameters::HISTOGRAM_DISABLE);
+    mParameters.set(CameraParameters::KEY_SUPPORTED_HISTOGRAM_MODES,
+                    histogram_values);
     mParameters.set(CameraParameters::KEY_SKIN_TONE_ENHANCEMENT,
                     CameraParameters::SKIN_TONE_ENHANCEMENT_DISABLE);
     mParameters.set(CameraParameters::KEY_SUPPORTED_SKIN_TONE_ENHANCEMENT_MODES,
